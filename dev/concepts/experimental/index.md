@@ -135,9 +135,9 @@ This example uses plain idiomatic Python code that may be easier to understand, 
 
 ## Partial Validation
 
-Pydantic v2.10.0 introduces experimental support for "partial validation".
+Added in v2.10.
 
-This allows you to validate an incomplete JSON string, or a Python object representing incomplete input data.
+Partial validation allows you to validate an incomplete JSON string, or a Python object representing incomplete input data.
 
 Partial validation is particularly helpful when processing the output of an LLM, where the model streams structured responses, and you may wish to begin validating the stream while you're still receiving data (e.g. to show partial data to users).
 
@@ -535,36 +535,6 @@ The `MISSING` sentinel is a singleton indicating a field value was not provided 
 This singleton can be used as a default value, as an alternative to `None` when it has an explicit meaning. During serialization, any field with `MISSING` as a value is excluded from the output.
 
 ```python
-from typing import Union
-
-from pydantic import BaseModel
-from pydantic.experimental.missing_sentinel import MISSING
-
-
-class Configuration(BaseModel):
-    timeout: Union[int, None, MISSING] = MISSING
-
-
-# configuration defaults, stored somewhere else:
-defaults = {'timeout': 200}
-
-conf = Configuration()
-
-# `timeout` is excluded from the serialization output:
-conf.model_dump()
-# {}
-
-# The `MISSING` value doesn't appear in the JSON Schema:
-Configuration.model_json_schema()['properties']['timeout']
-#> {'anyOf': [{'type': 'integer'}, {'type': 'null'}], 'title': 'Timeout'}}
-
-
-# `is` can be used to discriminate between the sentinel and other values:
-timeout = conf.timeout if conf.timeout is not MISSING else defaults['timeout']
-
-```
-
-```python
 from pydantic import BaseModel
 from pydantic.experimental.missing_sentinel import MISSING
 
@@ -598,3 +568,7 @@ As such, the following limitations currently apply:
 
 - Static type checking of sentinels is only supported with Pyright [1.1.402](https://github.com/microsoft/pyright/releases/tag/1.1.402) or greater, and the `enableExperimentalFeatures` type evaluation setting should be enabled.
 - Pickling of models containing `MISSING` as a value is not supported.
+
+Note
+
+When [applying constraints](../fields/#field-constraints) to a union containing the `MISSING` sentinel, such constraints are automatically applied to the remaining type(s) of the union.

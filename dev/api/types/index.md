@@ -684,15 +684,13 @@ A bytes type that is encoded and decoded using the standard (non-URL-safe) base6
 
 Note
 
-Under the hood, `Base64Bytes` uses the standard library `base64.b64encode` and `base64.b64decode` functions.
+Under the hood, `Base64Bytes` uses the standard library base64.b64encode() and base64.b64decode() functions.
 
 As a result, attempting to decode url-safe base64 data using the `Base64Bytes` type may fail or produce an incorrect decoding.
 
-Warning
+Changed in v2.10: `Base64Bytes` now uses base64.b64encode() and base64.b64decode() instead of base64.encodebytes() and base64.decodebytes().
 
-In versions of Pydantic prior to v2.10, `Base64Bytes` used base64.encodebytes and base64.decodebytes functions. According to the [base64 documentation](https://docs.python.org/3/library/base64.html), these methods are considered legacy implementation, and thus, Pydantic v2.10+ now uses the modern base64.b64encode and base64.b64decode functions.
-
-If you'd still like to use these legacy encoders / decoders, you can achieve this by creating a custom annotated type, like follows:
+These methods are considered legacy implementation. If you'd still like to use these legacy encoders/decoders, you can achieve this by creating a custom annotated type, like follows:
 
 ```python
 import base64
@@ -765,19 +763,17 @@ Base64Str = Annotated[
 
 ```
 
-A str type that is encoded and decoded using the standard (non-URL-safe) base64 encoder.
+A string type that is encoded and decoded using the standard (non-URL-safe) base64 encoder.
 
 Note
 
-Under the hood, `Base64Str` uses the standard library `base64.b64encode` and `base64.b64decode` functions.
+Under the hood, `Base64Str` uses the standard library base64.b64encode() and base64.b64decode() functions.
 
 As a result, attempting to decode url-safe base64 data using the `Base64Str` type may fail or produce an incorrect decoding.
 
-Warning
+Changed in v2.10: `Base64Str` now uses base64.b64encode() and base64.b64decode() instead of base64.encodebytes() and base64.decodebytes().
 
-In versions of Pydantic prior to v2.10, `Base64Str` used base64.encodebytes and base64.decodebytes functions. According to the [base64 documentation](https://docs.python.org/3/library/base64.html), these methods are considered legacy implementation, and thus, Pydantic v2.10+ now uses the modern base64.b64encode and base64.b64decode functions.
-
-See the Base64Bytes type for more information on how to replicate the old behavior with the legacy encoders / decoders.
+These methods are considered legacy implementation. See the documentation about the Base64Bytes type for more information on how to replicate the old behavior with the legacy encoders/decoders.
 
 ```python
 from pydantic import Base64Str, BaseModel, ValidationError
@@ -872,15 +868,9 @@ print(m)
 ### JsonValue
 
 ```python
-JsonValue: TypeAlias = Union[
-    list["JsonValue"],
-    dict[str, "JsonValue"],
-    str,
-    bool,
-    int,
-    float,
-    None,
-]
+JsonValue: TypeAlias = (
+    "list[JsonValue] | dict[str, JsonValue] | str | bool | int | float | None"
+)
 
 ```
 
@@ -1055,7 +1045,7 @@ A field metadata class to apply constraints to `str` types. Use this class as an
 
 Attributes:
 
-| Name | Type | Description | | --- | --- | --- | | `strip_whitespace` | `bool | None` | Whether to remove leading and trailing whitespace. | | `to_upper` | `bool | None` | Whether to convert the string to uppercase. | | `to_lower` | `bool | None` | Whether to convert the string to lowercase. | | `strict` | `bool | None` | Whether to validate the string in strict mode. | | `min_length` | `int | None` | The minimum length of the string. | | `max_length` | `int | None` | The maximum length of the string. | | `pattern` | `str | Pattern[str] | None` | A regex pattern that the string must match. |
+| Name | Type | Description | | --- | --- | --- | | `strip_whitespace` | `bool | None` | Whether to remove leading and trailing whitespace. | | `to_upper` | `bool | None` | Whether to convert the string to uppercase. | | `to_lower` | `bool | None` | Whether to convert the string to lowercase. | | `strict` | `bool | None` | Whether to validate the string in strict mode. | | `min_length` | `int | None` | The minimum length of the string. | | `max_length` | `int | None` | The maximum length of the string. | | `pattern` | `str | Pattern[str] | None` | A regex pattern that the string must match. | | `ascii_only` | `bool | None` | Whether the string should contain only ASCII characters. |
 
 Example
 
@@ -1087,6 +1077,7 @@ class StringConstraints(annotated_types.GroupedMetadata):
         min_length: The minimum length of the string.
         max_length: The maximum length of the string.
         pattern: A regex pattern that the string must match.
+        ascii_only: Whether the string should contain only ASCII characters.
 
     Example:
         ```python
@@ -1105,6 +1096,7 @@ class StringConstraints(annotated_types.GroupedMetadata):
     min_length: int | None = None
     max_length: int | None = None
     pattern: str | Pattern[str] | None = None
+    ascii_only: bool | None = None
 
     def __iter__(self) -> Iterator[BaseMetadata]:
         if self.min_length is not None:
@@ -1118,12 +1110,14 @@ class StringConstraints(annotated_types.GroupedMetadata):
             or self.pattern is not None
             or self.to_lower is not None
             or self.to_upper is not None
+            or self.ascii_only is not None
         ):
             yield _fields.pydantic_general_metadata(
                 strip_whitespace=self.strip_whitespace,
                 to_upper=self.to_upper,
                 to_lower=self.to_lower,
                 pattern=self.pattern,
+                ascii_only=self.ascii_only,
             )
 
 ````
@@ -1159,7 +1153,7 @@ except ValidationError as e:
     '''
     1 validation error for ImportThings
     obj
-      Invalid python path: No module named 'foo.bar' [type=import_error, input_value='foo.bar', input_type=str]
+      Invalid python path: No module named 'foo' [type=import_error, input_value='foo.bar', input_type=str]
     '''
 
 # Actual python objects can be assigned as well
@@ -1243,7 +1237,7 @@ class ImportString:
         '''
         1 validation error for ImportThings
         obj
-          Invalid python path: No module named 'foo.bar' [type=import_error, input_value='foo.bar', input_type=str]
+          Invalid python path: No module named 'foo' [type=import_error, input_value='foo.bar', input_type=str]
         '''
 
     # Actual python objects can be assigned as well
@@ -1359,7 +1353,7 @@ UUID1 = Annotated[UUID, UuidVersion(1)]
 Source code in `pydantic/types.py`
 
 ````python
-@_dataclasses.dataclass(**_internal_dataclass.slots_true)
+@_dataclasses.dataclass(slots=True)
 class UuidVersion:
     """A field metadata class to indicate a [UUID](https://docs.python.org/3/library/uuid.html) version.
 
@@ -1396,7 +1390,7 @@ class UuidVersion:
         return schema
 
     def __hash__(self) -> int:
-        return hash(type(self.uuid_version))
+        return hash(self.uuid_version)
 
 ````
 
@@ -2044,7 +2038,7 @@ Source code in `pydantic/types.py`
 ```python
 @deprecated(
     'The `PaymentCardNumber` class is deprecated, use `pydantic_extra_types` instead. '
-    'See https://docs.pydantic.dev/latest/api/pydantic_extra_types_payment/#pydantic_extra_types.payment.PaymentCardNumber.',
+    'See https://pydantic.dev/docs/validation/latest/api/pydantic-extra-types/pydantic_extra_types_payment/#pydantic_extra_types.payment.PaymentCardNumber.',
     category=PydanticDeprecatedSince20,
 )
 class PaymentCardNumber(str):
@@ -3248,7 +3242,7 @@ except ValidationError as e:
 Source code in `pydantic/types.py`
 
 ````python
-@_dataclasses.dataclass(**_internal_dataclass.slots_true)
+@_dataclasses.dataclass(slots=True)
 class EncodedBytes:
     """A bytes type that is encoded and decoded using the specified encoder.
 
@@ -3472,7 +3466,7 @@ except ValidationError as e:
 Source code in `pydantic/types.py`
 
 ````python
-@_dataclasses.dataclass(**_internal_dataclass.slots_true)
+@_dataclasses.dataclass(slots=True)
 class EncodedStr:
     """A str type that is encoded and decoded using the specified encoder.
 
@@ -3668,7 +3662,7 @@ print(repr(Model(x='abc').x))
 Source code in `pydantic/types.py`
 
 ````python
-@_dataclasses.dataclass(**_internal_dataclass.slots_true)
+@_dataclasses.dataclass(slots=True)
 class GetPydanticSchema:
     """!!! abstract "Usage Documentation"
         [Using `GetPydanticSchema` to Reduce Boilerplate](../concepts/types.md#using-getpydanticschema-to-reduce-boilerplate)
@@ -3722,12 +3716,12 @@ Provides a way to specify the expected tag to use for a case of a (callable) dis
 
 Also provides a way to label a union case in error messages.
 
-When using a callable `Discriminator`, attach a `Tag` to each case in the `Union` to specify the tag that should be used to identify that case. For example, in the below example, the `Tag` is used to specify that if `get_discriminator_value` returns `'apple'`, the input should be validated as an `ApplePie`, and if it returns `'pumpkin'`, the input should be validated as a `PumpkinPie`.
+When using a callable `Discriminator`, attach a `Tag` to each case in the union to specify the tag that should be used to identify that case. For example, in the below example, the `Tag` is used to specify that if `get_discriminator_value` returns `'apple'`, the input should be validated as an `ApplePie`, and if it returns `'pumpkin'`, the input should be validated as a `PumpkinPie`.
 
-The primary role of the `Tag` here is to map the return value from the callable `Discriminator` function to the appropriate member of the `Union` in question.
+The primary role of the `Tag` here is to map the return value from the callable `Discriminator` function to the appropriate member of the union in question.
 
 ```python
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Discriminator, Tag
 
@@ -3748,10 +3742,7 @@ def get_discriminator_value(v: Any) -> str:
 
 class ThanksgivingDinner(BaseModel):
     dessert: Annotated[
-        Union[
-            Annotated[ApplePie, Tag('apple')],
-            Annotated[PumpkinPie, Tag('pumpkin')],
-        ],
+        Annotated[ApplePie, Tag('apple')] | Annotated[PumpkinPie, Tag('pumpkin')],
         Discriminator(get_discriminator_value),
     ]
 
@@ -3788,22 +3779,22 @@ See the [Discriminated Unions](../../concepts/unions/#discriminated-unions) conc
 Source code in `pydantic/types.py`
 
 ````python
-@_dataclasses.dataclass(**_internal_dataclass.slots_true, frozen=True)
+@_dataclasses.dataclass(slots=True, frozen=True)
 class Tag:
     """Provides a way to specify the expected tag to use for a case of a (callable) discriminated union.
 
     Also provides a way to label a union case in error messages.
 
-    When using a callable `Discriminator`, attach a `Tag` to each case in the `Union` to specify the tag that
+    When using a callable `Discriminator`, attach a `Tag` to each case in the union to specify the tag that
     should be used to identify that case. For example, in the below example, the `Tag` is used to specify that
     if `get_discriminator_value` returns `'apple'`, the input should be validated as an `ApplePie`, and if it
     returns `'pumpkin'`, the input should be validated as a `PumpkinPie`.
 
     The primary role of the `Tag` here is to map the return value from the callable `Discriminator` function to
-    the appropriate member of the `Union` in question.
+    the appropriate member of the union in question.
 
-    ```python
-    from typing import Annotated, Any, Literal, Union
+    ```python {lint="skip"}
+    from typing import Annotated, Any, Literal
 
     from pydantic import BaseModel, Discriminator, Tag
 
@@ -3824,10 +3815,7 @@ class Tag:
 
     class ThanksgivingDinner(BaseModel):
         dessert: Annotated[
-            Union[
-                Annotated[ApplePie, Tag('apple')],
-                Annotated[PumpkinPie, Tag('pumpkin')],
-            ],
+            Annotated[ApplePie, Tag('apple')] | Annotated[PumpkinPie, Tag('pumpkin')],
             Discriminator(get_discriminator_value),
         ]
 
@@ -3884,10 +3872,10 @@ Provides a way to use a custom callable as the way to extract the value of a uni
 
 This allows you to get validation behavior like you'd get from `Field(discriminator=<field_name>)`, but without needing to have a single shared field across all the union choices. This also makes it possible to handle unions of models and primitive types with discriminated-union-style validation errors. Finally, this allows you to use a custom callable as the way to identify which member of a union a value belongs to, while still seeing all the performance benefits of a discriminated union.
 
-Consider this example, which is much more performant with the use of `Discriminator` and thus a `TaggedUnion` than it would be as a normal `Union`.
+Consider this example, which is much more performant with the use of `Discriminator` and thus a `TaggedUnion` than it would be as a normal union.
 
 ```python
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Discriminator, Tag
 
@@ -3908,10 +3896,7 @@ def get_discriminator_value(v: Any) -> str:
 
 class ThanksgivingDinner(BaseModel):
     dessert: Annotated[
-        Union[
-            Annotated[ApplePie, Tag('apple')],
-            Annotated[PumpkinPie, Tag('pumpkin')],
-        ],
+        Annotated[ApplePie, Tag('apple')] | Annotated[PumpkinPie, Tag('pumpkin')],
         Discriminator(get_discriminator_value),
     ]
 
@@ -3944,7 +3929,7 @@ See the [Discriminated Unions](../../concepts/unions/#discriminated-unions) conc
 Source code in `pydantic/types.py`
 
 ````python
-@_dataclasses.dataclass(**_internal_dataclass.slots_true, frozen=True)
+@_dataclasses.dataclass(slots=True, frozen=True)
 class Discriminator:
     """!!! abstract "Usage Documentation"
         [Discriminated Unions with `Callable` `Discriminator`](../concepts/unions.md#discriminated-unions-with-callable-discriminator)
@@ -3958,10 +3943,10 @@ class Discriminator:
     belongs to, while still seeing all the performance benefits of a discriminated union.
 
     Consider this example, which is much more performant with the use of `Discriminator` and thus a `TaggedUnion`
-    than it would be as a normal `Union`.
+    than it would be as a normal union.
 
-    ```python
-    from typing import Annotated, Any, Literal, Union
+    ```python {lint="skip"}
+    from typing import Annotated, Any, Literal
 
     from pydantic import BaseModel, Discriminator, Tag
 
@@ -3982,10 +3967,7 @@ class Discriminator:
 
     class ThanksgivingDinner(BaseModel):
         dessert: Annotated[
-            Union[
-                Annotated[ApplePie, Tag('apple')],
-                Annotated[PumpkinPie, Tag('pumpkin')],
-            ],
+            Annotated[ApplePie, Tag('apple')] | Annotated[PumpkinPie, Tag('pumpkin')],
             Discriminator(get_discriminator_value),
         ]
 
@@ -4033,9 +4015,6 @@ class Discriminator:
     """Context to use in custom errors."""
 
     def __get_pydantic_core_schema__(self, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
-        if not is_union_origin(get_origin(source_type)):
-            raise TypeError(f'{type(self).__name__} must be used with a Union type, not {source_type}')
-
         if isinstance(self.discriminator, str):
             from pydantic import Field
 
@@ -4047,6 +4026,20 @@ class Discriminator:
     def _convert_schema(
         self, original_schema: core_schema.CoreSchema, handler: GetCoreSchemaHandler | None = None
     ) -> core_schema.TaggedUnionSchema:
+        if handler is not None and original_schema['type'] == 'definition-ref':
+            # Same logic as `_ApplyInferredDiscriminator._apply_to_root()`
+            try:
+                def_schema = handler.resolve_ref_schema(original_schema)
+            except LookupError:  # pragma: no cover
+                from pydantic._internal._discriminated_union import MissingDefinitionForUnionRef
+
+                raise MissingDefinitionForUnionRef(original_schema['schema_ref'])
+
+            # If using a referenceable union as discriminated (e.g. `type Pet = Cat | Dog; field: Pet = Field(discriminator=...)`):
+            if def_schema['type'] == 'union':
+                original_schema = def_schema.copy()
+                original_schema.pop('ref')
+
         if original_schema['type'] != 'union':
             # This likely indicates that the schema was a single-item union that was simplified.
             # In this case, we do the same thing we do in
@@ -4623,7 +4616,8 @@ constr(
     strict: bool | None = None,
     min_length: int | None = None,
     max_length: int | None = None,
-    pattern: str | Pattern[str] | None = None
+    pattern: str | Pattern[str] | None = None,
+    ascii_only: bool | None = None
 ) -> type[str]
 
 ```
@@ -4675,7 +4669,7 @@ print(foo)
 
 Parameters:
 
-| Name | Type | Description | Default | | --- | --- | --- | --- | | `strip_whitespace` | `bool | None` | Whether to remove leading and trailing whitespace. | `None` | | `to_upper` | `bool | None` | Whether to turn all characters to uppercase. | `None` | | `to_lower` | `bool | None` | Whether to turn all characters to lowercase. | `None` | | `strict` | `bool | None` | Whether to validate the string in strict mode. | `None` | | `min_length` | `int | None` | The minimum length of the string. | `None` | | `max_length` | `int | None` | The maximum length of the string. | `None` | | `pattern` | `str | Pattern[str] | None` | A regex pattern to validate the string against. | `None` |
+| Name | Type | Description | Default | | --- | --- | --- | --- | | `strip_whitespace` | `bool | None` | Whether to remove leading and trailing whitespace. | `None` | | `to_upper` | `bool | None` | Whether to turn all characters to uppercase. | `None` | | `to_lower` | `bool | None` | Whether to turn all characters to lowercase. | `None` | | `strict` | `bool | None` | Whether to validate the string in strict mode. | `None` | | `min_length` | `int | None` | The minimum length of the string. | `None` | | `max_length` | `int | None` | The maximum length of the string. | `None` | | `pattern` | `str | Pattern[str] | None` | A regex pattern to validate the string against. | `None` | | `ascii_only` | `bool | None` | Whether the string should contain only ASCII characters. | `None` |
 
 Returns:
 
@@ -4693,6 +4687,7 @@ def constr(
     min_length: int | None = None,
     max_length: int | None = None,
     pattern: str | Pattern[str] | None = None,
+    ascii_only: bool | None = None,
 ) -> type[str]:
     """
     !!! warning "Discouraged"
@@ -4748,6 +4743,7 @@ def constr(
         min_length: The minimum length of the string.
         max_length: The maximum length of the string.
         pattern: A regex pattern to validate the string against.
+        ascii_only: Whether the string should contain only ASCII characters.
 
     Returns:
         The wrapped string type.
@@ -4762,6 +4758,7 @@ def constr(
             min_length=min_length,
             max_length=max_length,
             pattern=pattern,
+            ascii_only=ascii_only,
         ),
     ]
 

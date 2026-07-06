@@ -128,6 +128,84 @@ print(Model.model_json_schema())
 
 ```
 
+## Invalid decorator fields
+
+This error is raised when the field names provided to the @field_validator or @field_serializer decorators are not strings.
+
+```python
+from pydantic import BaseModel, PydanticUserError, field_validator
+
+try:
+
+    class Model(BaseModel):
+        a: str
+        b: str
+
+        @field_validator(['a', 'b'])
+        @classmethod
+        def check_fields(cls, v):
+            return v
+
+except PydanticUserError as exc_info:
+    assert exc_info.code == 'decorator-invalid-fields'
+
+```
+
+Fields should be provided as separate string arguments:
+
+```python
+from pydantic import BaseModel, field_validator
+
+
+class Model(BaseModel):
+    a: str
+    b: str
+
+    @field_validator('a', 'b')
+    @classmethod
+    def check_fields(cls, v):
+        return v
+
+```
+
+## Decorator with no fields
+
+This error is raised when the @field_validator or @field_serializer decorators are used bare, without any arguments.
+
+```python
+from pydantic import BaseModel, PydanticUserError, field_validator
+
+try:
+
+    class Model(BaseModel):
+        a: str
+
+        @field_validator
+        @classmethod
+        def checker(cls, v):
+            return v
+
+except PydanticUserError as exc_info:
+    assert exc_info.code == 'decorator-missing-arguments'
+
+```
+
+At least one field name (and optionally other field names and keyword arguments) should be provided.
+
+```python
+from pydantic import BaseModel, field_validator
+
+
+class Model(BaseModel):
+    a: str
+
+    @field_validator('a')
+    @classmethod
+    def checker(cls, v):
+        return v
+
+```
+
 ## Decorator on missing field
 
 This error is raised when you define a decorator with a field that is not valid.
@@ -174,32 +252,6 @@ model = create_model('FooModel', a=(str, 'cake'), __base__=Model)
 This error is raised when a model in discriminated unions doesn't define a discriminator field.
 
 ```python
-from typing import Literal, Union
-
-from pydantic import BaseModel, Field, PydanticUserError
-
-
-class Cat(BaseModel):
-    c: str
-
-
-class Dog(BaseModel):
-    pet_type: Literal['dog']
-    d: str
-
-
-try:
-
-    class Model(BaseModel):
-        pet: Union[Cat, Dog] = Field(discriminator='pet_type')
-        number: int
-
-except PydanticUserError as exc_info:
-    assert exc_info.code == 'discriminator-no-field'
-
-```
-
-```python
 from typing import Literal
 
 from pydantic import BaseModel, Field, PydanticUserError
@@ -228,35 +280,6 @@ except PydanticUserError as exc_info:
 ## Discriminator alias type
 
 This error is raised when you define a non-string alias on a discriminator field.
-
-```python
-from typing import Literal, Union
-
-from pydantic import AliasChoices, BaseModel, Field, PydanticUserError
-
-
-class Cat(BaseModel):
-    pet_type: Literal['cat'] = Field(
-        validation_alias=AliasChoices('Pet', 'PET')
-    )
-    c: str
-
-
-class Dog(BaseModel):
-    pet_type: Literal['dog']
-    d: str
-
-
-try:
-
-    class Model(BaseModel):
-        pet: Union[Cat, Dog] = Field(discriminator='pet_type')
-        number: int
-
-except PydanticUserError as exc_info:
-    assert exc_info.code == 'discriminator-alias-type'
-
-```
 
 ```python
 from typing import Literal
@@ -292,33 +315,6 @@ except PydanticUserError as exc_info:
 This error is raised when you define a non-`Literal` type on a discriminator field.
 
 ```python
-from typing import Literal, Union
-
-from pydantic import BaseModel, Field, PydanticUserError
-
-
-class Cat(BaseModel):
-    pet_type: int
-    c: str
-
-
-class Dog(BaseModel):
-    pet_type: Literal['dog']
-    d: str
-
-
-try:
-
-    class Model(BaseModel):
-        pet: Union[Cat, Dog] = Field(discriminator='pet_type')
-        number: int
-
-except PydanticUserError as exc_info:
-    assert exc_info.code == 'discriminator-needs-literal'
-
-```
-
-```python
 from typing import Literal
 
 from pydantic import BaseModel, Field, PydanticUserError
@@ -348,33 +344,6 @@ except PydanticUserError as exc_info:
 ## Discriminator alias
 
 This error is raised when you define different aliases on discriminator fields.
-
-```python
-from typing import Literal, Union
-
-from pydantic import BaseModel, Field, PydanticUserError
-
-
-class Cat(BaseModel):
-    pet_type: Literal['cat'] = Field(validation_alias='PET')
-    c: str
-
-
-class Dog(BaseModel):
-    pet_type: Literal['dog'] = Field(validation_alias='Pet')
-    d: str
-
-
-try:
-
-    class Model(BaseModel):
-        pet: Union[Cat, Dog] = Field(discriminator='pet_type')
-        number: int
-
-except PydanticUserError as exc_info:
-    assert exc_info.code == 'discriminator-alias'
-
-```
 
 ```python
 from typing import Literal
@@ -410,38 +379,6 @@ This error is raised when you use a before, wrap, or plain validator on a discri
 This is disallowed because the discriminator field is used to determine the type of the model to use for validation, so you can't use a validator that might change its value.
 
 ```python
-from typing import Literal, Union
-
-from pydantic import BaseModel, Field, PydanticUserError, field_validator
-
-
-class Cat(BaseModel):
-    pet_type: Literal['cat']
-
-    @field_validator('pet_type', mode='before')
-    @classmethod
-    def validate_pet_type(cls, v):
-        if v == 'kitten':
-            return 'cat'
-        return v
-
-
-class Dog(BaseModel):
-    pet_type: Literal['dog']
-
-
-try:
-
-    class Model(BaseModel):
-        pet: Union[Cat, Dog] = Field(discriminator='pet_type')
-        number: int
-
-except PydanticUserError as exc_info:
-    assert exc_info.code == 'discriminator-validator'
-
-```
-
-```python
 from typing import Literal
 
 from pydantic import BaseModel, Field, PydanticUserError, field_validator
@@ -473,36 +410,7 @@ except PydanticUserError as exc_info:
 
 ```
 
-This can be worked around by using a standard `Union`, dropping the discriminator:
-
-```python
-from typing import Literal, Union
-
-from pydantic import BaseModel, field_validator
-
-
-class Cat(BaseModel):
-    pet_type: Literal['cat']
-
-    @field_validator('pet_type', mode='before')
-    @classmethod
-    def validate_pet_type(cls, v):
-        if v == 'kitten':
-            return 'cat'
-        return v
-
-
-class Dog(BaseModel):
-    pet_type: Literal['dog']
-
-
-class Model(BaseModel):
-    pet: Union[Cat, Dog]
-
-
-assert Model(pet={'pet_type': 'kitten'}).pet.pet_type == 'cat'
-
-```
+This can be worked around by using a standard union, dropping the discriminator:
 
 ```python
 from typing import Literal
@@ -535,10 +443,10 @@ assert Model(pet={'pet_type': 'kitten'}).pet.pet_type == 'cat'
 
 ## Callable discriminator case with no tag
 
-This error is raised when a `Union` that uses a callable `Discriminator` doesn't have `Tag` annotations for all cases.
+This error is raised when a union that uses a callable `Discriminator` doesn't have `Tag` annotations for all cases.
 
 ```python
-from typing import Annotated, Union
+from typing import Annotated
 
 from pydantic import BaseModel, Discriminator, PydanticUserError, Tag
 
@@ -555,7 +463,7 @@ try:
 
     class DiscriminatedModel(BaseModel):
         x: Annotated[
-            Union[str, 'DiscriminatedModel'],
+            'str | DiscriminatedModel',
             Discriminator(model_x_discriminator),
         ]
 
@@ -567,7 +475,7 @@ try:
 
     class DiscriminatedModel(BaseModel):
         x: Annotated[
-            Union[Annotated[str, Tag('str')], 'DiscriminatedModel'],
+            "Annotated[str, Tag('str')] | DiscriminatedModel",
             Discriminator(model_x_discriminator),
         ]
 
@@ -579,58 +487,7 @@ try:
 
     class DiscriminatedModel(BaseModel):
         x: Annotated[
-            Union[str, Annotated['DiscriminatedModel', Tag('model')]],
-            Discriminator(model_x_discriminator),
-        ]
-
-except PydanticUserError as exc_info:
-    assert exc_info.code == 'callable-discriminator-no-tag'
-
-```
-
-```python
-from typing import Annotated, Union
-
-from pydantic import BaseModel, Discriminator, PydanticUserError, Tag
-
-
-def model_x_discriminator(v):
-    if isinstance(v, str):
-        return 'str'
-    if isinstance(v, (dict, BaseModel)):
-        return 'model'
-
-
-# tag missing for both union choices
-try:
-
-    class DiscriminatedModel(BaseModel):
-        x: Annotated[
-            Union[str, 'DiscriminatedModel'],
-            Discriminator(model_x_discriminator),
-        ]
-
-except PydanticUserError as exc_info:
-    assert exc_info.code == 'callable-discriminator-no-tag'
-
-# tag missing for `'DiscriminatedModel'` union choice
-try:
-
-    class DiscriminatedModel(BaseModel):
-        x: Annotated[
-            Union[Annotated[str, Tag('str')], 'DiscriminatedModel'],
-            Discriminator(model_x_discriminator),
-        ]
-
-except PydanticUserError as exc_info:
-    assert exc_info.code == 'callable-discriminator-no-tag'
-
-# tag missing for `str` union choice
-try:
-
-    class DiscriminatedModel(BaseModel):
-        x: Annotated[
-            str | Annotated['DiscriminatedModel', Tag('model')],
+            "str | Annotated[DiscriminatedModel, Tag('model')]",
             Discriminator(model_x_discriminator),
         ]
 
@@ -873,80 +730,6 @@ except PydanticUserError as exc_info:
 ```
 
 The fields definition syntax can be found in the [dynamic model creation](../../concepts/models/#dynamic-model-creation) documentation.
-
-## Validator with no fields
-
-This error is raised when you use validator bare (with no fields).
-
-```python
-from pydantic import BaseModel, PydanticUserError, field_validator
-
-try:
-
-    class Model(BaseModel):
-        a: str
-
-        @field_validator
-        def checker(cls, v):
-            return v
-
-except PydanticUserError as exc_info:
-    assert exc_info.code == 'validator-no-fields'
-
-```
-
-Validators should be used with fields and keyword arguments.
-
-```python
-from pydantic import BaseModel, field_validator
-
-
-class Model(BaseModel):
-    a: str
-
-    @field_validator('a')
-    def checker(cls, v):
-        return v
-
-```
-
-## Invalid validator fields
-
-This error is raised when you use a validator with non-string fields.
-
-```python
-from pydantic import BaseModel, PydanticUserError, field_validator
-
-try:
-
-    class Model(BaseModel):
-        a: str
-        b: str
-
-        @field_validator(['a', 'b'])
-        def check_fields(cls, v):
-            return v
-
-except PydanticUserError as exc_info:
-    assert exc_info.code == 'validator-invalid-fields'
-
-```
-
-Fields should be passed as separate string arguments:
-
-```python
-from pydantic import BaseModel, field_validator
-
-
-class Model(BaseModel):
-    a: str
-    b: str
-
-    @field_validator('a', 'b')
-    def check_fields(cls, v):
-        return v
-
-```
 
 ## Validator on instance method
 
@@ -1192,7 +975,7 @@ def mod_ser(self, info: SerializationInfo): ...
 
 # an instance method with `mode='wrap'`
 @model_serializer(mode='wrap')
-def mod_ser(self, handler: SerializerFunctionWrapHandler, info: SerializationInfo):
+def mod_ser(self, handler: SerializerFunctionWrapHandler, info: SerializationInfo): ...
 
 # For all of these, you can also choose to omit the `info` argument, for example:
 @model_serializer(mode='plain')

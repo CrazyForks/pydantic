@@ -181,31 +181,11 @@ This error is also raised for strict fields when the input value is not an insta
 
 ## `callable_type`
 
-This error is raised when the input value is not valid as a `Callable`:
+This error is raised when the input value is not valid as a callable:
 
 ```python
-from typing import Any, Callable
-
-from pydantic import BaseModel, ImportString, ValidationError
-
-
-class Model(BaseModel):
-    x: ImportString[Callable[[Any], Any]]
-
-
-Model(x='math:cos')  # OK
-
-try:
-    Model(x='os.path')
-except ValidationError as exc:
-    print(repr(exc.errors()[0]['type']))
-    #> 'callable_type'
-
-```
-
-```python
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from pydantic import BaseModel, ImportString, ValidationError
 
@@ -872,6 +852,50 @@ try:
 except ValidationError as exc:
     print(repr(exc.errors()[0]['type']))
     #> 'float_type'
+
+```
+
+## `fraction_parsing`
+
+This error is raised when the value provided for an input that could not be parsed as a fraction:
+
+```python
+from fractions import Fraction
+
+from pydantic import BaseModel, ValidationError
+
+
+class Model(BaseModel):
+    x: Fraction
+
+
+try:
+    Model(x='invalid')
+except ValidationError as exc:
+    print(repr(exc.errors()[0]['type']))
+    #> 'fraction_parsing'
+
+```
+
+## `fraction_type`
+
+This error is raised when the value provided for a Fraction is of the wrong type:
+
+```python
+from fractions import Fraction
+
+from pydantic import BaseModel, ValidationError
+
+
+class Model(BaseModel):
+    x: Fraction
+
+
+try:
+    Model.model_validate_json('{"x": [1, 2]}')
+except ValidationError as exc:
+    print(repr(exc.errors()[0]['type']))
+    #> 'fraction_type'
 
 ```
 
@@ -1679,13 +1703,11 @@ You may encounter this error when there is a naming collision in your model betw
 For example, the following would yield the `none_required` validation error since the field `int` is set to a default value of `None` and has the exact same name as its type, which causes problems with validation.
 
 ```python
-from typing import Optional
-
 from pydantic import BaseModel
 
 
 class M1(BaseModel):
-    int: Optional[int] = None
+    int: int | None = None
 
 
 m = M1(int=123)  # errors
@@ -1757,6 +1779,28 @@ try:
 except ValidationError as exc:
     print(repr(exc.errors()[0]['type']))
     #> 'set_type'
+
+```
+
+## `string_not_ascii`
+
+This error is raised when the input string contains non-ASCII characters:
+
+```python
+from typing import Annotated
+
+from pydantic import BaseModel, StringConstraints, ValidationError
+
+
+class Model(BaseModel):
+    v: Annotated[str, StringConstraints(ascii_only=True)]
+
+
+try:
+    Model(v='caf\u00e9')
+except ValidationError as exc:
+    print(repr(exc.errors()[0]['type']))
+    #> 'string_not_ascii'
 
 ```
 
@@ -2153,32 +2197,6 @@ except ValidationError as exc:
 This error is raised when the input's discriminator is not one of the expected values:
 
 ```python
-from typing import Literal, Union
-
-from pydantic import BaseModel, Field, ValidationError
-
-
-class BlackCat(BaseModel):
-    pet_type: Literal['blackcat']
-
-
-class WhiteCat(BaseModel):
-    pet_type: Literal['whitecat']
-
-
-class Model(BaseModel):
-    cat: Union[BlackCat, WhiteCat] = Field(discriminator='pet_type')
-
-
-try:
-    Model(cat={'pet_type': 'dog'})
-except ValidationError as exc:
-    print(repr(exc.errors()[0]['type']))
-    #> 'union_tag_invalid'
-
-```
-
-```python
 from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
@@ -2207,32 +2225,6 @@ except ValidationError as exc:
 ## `union_tag_not_found`
 
 This error is raised when it is not possible to extract a discriminator value from the input:
-
-```python
-from typing import Literal, Union
-
-from pydantic import BaseModel, Field, ValidationError
-
-
-class BlackCat(BaseModel):
-    pet_type: Literal['blackcat']
-
-
-class WhiteCat(BaseModel):
-    pet_type: Literal['whitecat']
-
-
-class Model(BaseModel):
-    cat: Union[BlackCat, WhiteCat] = Field(discriminator='pet_type')
-
-
-try:
-    Model(cat={'name': 'blackcat'})
-except ValidationError as exc:
-    print(repr(exc.errors()[0]['type']))
-    #> 'union_tag_not_found'
-
-```
 
 ```python
 from typing import Literal

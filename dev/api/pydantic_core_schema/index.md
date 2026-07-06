@@ -3,7 +3,7 @@ This module contains definitions to build schemas which `pydantic_core` can vali
 ## WhenUsed
 
 ```python
-WhenUsed = Literal[
+WhenUsed: TypeAlias = Literal[
     "always", "unless-none", "json", "json-unless-none"
 ]
 
@@ -24,7 +24,7 @@ Base class for schema configuration options.
 
 Attributes:
 
-| Name | Type | Description | | --- | --- | --- | | `title` | `str` | The name of the configuration. | | `strict` | `bool` | Whether the configuration should strictly adhere to specified rules. | | `extra_fields_behavior` | `ExtraBehavior` | The behavior for handling extra fields. | | `typed_dict_total` | `bool` | Whether the TypedDict should be considered total. Default is True. | | `from_attributes` | `bool` | Whether to use attributes for models, dataclasses, and tagged union keys. | | `loc_by_alias` | `bool` | Whether to use the used alias (or first alias for "field required" errors) instead of field_names to construct error locs. Default is True. | | `revalidate_instances` | `Literal['always', 'never', 'subclass-instances']` | Whether instances of models and dataclasses should re-validate. Default is 'never'. | | `validate_default` | `bool` | Whether to validate default values during validation. Default is False. | | `str_max_length` | `int` | The maximum length for string fields. | | `str_min_length` | `int` | The minimum length for string fields. | | `str_strip_whitespace` | `bool` | Whether to strip whitespace from string fields. | | `str_to_lower` | `bool` | Whether to convert string fields to lowercase. | | `str_to_upper` | `bool` | Whether to convert string fields to uppercase. | | `allow_inf_nan` | `bool` | Whether to allow infinity and NaN values for float fields. Default is True. | | `ser_json_timedelta` | `Literal['iso8601', 'float']` | The serialization option for timedelta values. Default is 'iso8601'. Note that if ser_json_temporal is set, then this param will be ignored. | | `ser_json_temporal` | `Literal['iso8601', 'seconds', 'milliseconds']` | The serialization option for datetime like values. Default is 'iso8601'. The types this covers are datetime, date, time and timedelta. If this is set, it will take precedence over ser_json_timedelta | | `ser_json_bytes` | `Literal['utf8', 'base64', 'hex']` | The serialization option for bytes values. Default is 'utf8'. | | `ser_json_inf_nan` | `Literal['null', 'constants', 'strings']` | The serialization option for infinity and NaN values in float fields. Default is 'null'. | | `val_json_bytes` | `Literal['utf8', 'base64', 'hex']` | The validation option for bytes values, complementing ser_json_bytes. Default is 'utf8'. | | `hide_input_in_errors` | `bool` | Whether to hide input data from ValidationError representation. | | `validation_error_cause` | `bool` | Whether to add user-python excs to the cause of a ValidationError. Requires exceptiongroup backport pre Python 3.11. | | `coerce_numbers_to_str` | `bool` | Whether to enable coercion of any Number type to str (not applicable in strict mode). | | `regex_engine` | `Literal['rust-regex', 'python-re']` | The regex engine to use for regex pattern validation. Default is 'rust-regex'. See StringSchema. | | `cache_strings` | `Union[bool, Literal['all', 'keys', 'none']]` | Whether to cache strings. Default is True, True or 'all' is required to cache strings during general validation since validators don't know if they're in a key or a value. | | `validate_by_alias` | `bool` | Whether to use the field's alias when validating against the provided input data. Default is True. | | `validate_by_name` | `bool` | Whether to use the field's name when validating against the provided input data. Default is False. Replacement for populate_by_name. | | `serialize_by_alias` | `bool` | Whether to serialize by alias. Default is False, expected to change to True in V3. | | `url_preserve_empty_path` | `bool` | Whether to preserve empty URL paths when validating values for a URL type. Defaults to False. |
+| Name | Type | Description | | --- | --- | --- | | `title` | `str` | The name of the configuration. | | `strict` | `bool` | Whether the configuration should strictly adhere to specified rules. | | `extra_fields_behavior` | `ExtraBehavior` | The behavior for handling extra fields. | | `typed_dict_total` | `bool` | Whether the TypedDict should be considered total. Default is True. | | `from_attributes` | `bool` | Whether to use attributes for models, dataclasses, and tagged union keys. | | `loc_by_alias` | `bool` | Whether to use the used alias (or first alias for "field required" errors) instead of field_names to construct error locs. Default is True. | | `revalidate_instances` | `Literal['always', 'never', 'subclass-instances']` | Whether instances of models and dataclasses should re-validate. Default is 'never'. | | `validate_default` | `bool` | Whether to validate default values during validation. Default is False. | | `str_max_length` | `int` | The maximum length for string fields. | | `str_min_length` | `int` | The minimum length for string fields. | | `str_strip_whitespace` | `bool` | Whether to strip whitespace from string fields. | | `str_to_lower` | `bool` | Whether to convert string fields to lowercase. | | `str_to_upper` | `bool` | Whether to convert string fields to uppercase. | | `allow_inf_nan` | `bool` | Whether to allow infinity and NaN values for float fields. Default is True. | | `ser_json_timedelta` | `Literal['iso8601', 'float']` | The serialization option for timedelta values. Default is 'iso8601'. Note that if ser_json_temporal is set, then this param will be ignored. | | `ser_json_temporal` | `Literal['iso8601', 'seconds', 'milliseconds']` | The serialization option for datetime like values. Default is 'iso8601'. The types this covers are datetime, date, time and timedelta. If this is set, it will take precedence over ser_json_timedelta | | `ser_json_bytes` | `Literal['utf8', 'base64', 'hex']` | The serialization option for bytes values. Default is 'utf8'. | | `ser_json_inf_nan` | `Literal['null', 'constants', 'strings']` | The serialization option for infinity and NaN values in float fields. Default is 'null'. | | `val_json_bytes` | `Literal['utf8', 'base64', 'hex']` | The validation option for bytes values, complementing ser_json_bytes. Default is 'utf8'. | | `hide_input_in_errors` | `bool` | Whether to hide input data from ValidationError representation. | | `validation_error_cause` | `bool` | Whether to add user-python excs to the cause of a ValidationError. Requires exceptiongroup backport pre Python 3.11. | | `coerce_numbers_to_str` | `bool` | Whether to enable coercion of any Number type to str (not applicable in strict mode). | | `regex_engine` | `Literal['rust-regex', 'python-re']` | The regex engine to use for regex pattern validation. Default is 'rust-regex'. See StringSchema. | | `cache_strings` | `bool | Literal['all', 'keys', 'none']` | Whether to cache strings. Default is True, True or 'all' is required to cache strings during general validation since validators don't know if they're in a key or a value. | | `validate_by_alias` | `bool` | Whether to use the field's alias when validating against the provided input data. Default is True. | | `validate_by_name` | `bool` | Whether to use the field's name when validating against the provided input data. Default is False. Replacement for populate_by_name. | | `serialize_by_alias` | `bool` | Whether to serialize by alias. Default is False, expected to change to True in V3. | | `polymorphic_serialization` | `bool` | Whether to enable polymorphic serialization for models and dataclasses. Default is False. | | `url_preserve_empty_path` | `bool` | Whether to preserve empty URL paths when validating values for a URL type. Defaults to False. |
 
 ## SerializationInfo
 
@@ -121,6 +121,15 @@ serialize_as_any: bool
 ```
 
 The `serialize_as_any` argument set during serialization.
+
+### polymorphic_serialization
+
+```python
+polymorphic_serialization: bool | None
+
+```
+
+The `polymorphic_serialization` argument set during serialization, if any.
 
 ### round_trip
 
@@ -452,11 +461,6 @@ invalid_schema(
 
 Returns an invalid schema, used to indicate that a schema is invalid.
 
-```text
-Returns a schema that matches any value, e.g.:
-
-```
-
 Parameters:
 
 | Name | Type | Description | Default | | --- | --- | --- | --- | | `ref` | `str | None` | optional unique identifier of the schema, used to reference the schema in other places | `None` | | `metadata` | `dict[str, Any] | None` | Any other information you want to include with the schema, not used by pydantic-core | `None` |
@@ -467,8 +471,6 @@ Source code in `pydantic_core/core_schema.py`
 def invalid_schema(ref: str | None = None, metadata: dict[str, Any] | None = None) -> InvalidSchema:
     """
     Returns an invalid schema, used to indicate that a schema is invalid.
-
-        Returns a schema that matches any value, e.g.:
 
     Args:
         ref: optional unique identifier of the schema, used to reference the schema in other places
@@ -487,6 +489,9 @@ computed_field(
     return_schema: CoreSchema,
     *,
     alias: str | None = None,
+    serialization_exclude_if: (
+        Callable[[Any], bool] | None
+    ) = None,
     metadata: dict[str, Any] | None = None
 ) -> ComputedField
 
@@ -502,7 +507,12 @@ Source code in `pydantic_core/core_schema.py`
 
 ```python
 def computed_field(
-    property_name: str, return_schema: CoreSchema, *, alias: str | None = None, metadata: dict[str, Any] | None = None
+    property_name: str,
+    return_schema: CoreSchema,
+    *,
+    alias: str | None = None,
+    serialization_exclude_if: Callable[[Any], bool] | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> ComputedField:
     """
     ComputedFields are properties of a model or dataclass that are included in serialization.
@@ -514,7 +524,12 @@ def computed_field(
         metadata: Any other information you want to include with the schema, not used by pydantic-core
     """
     return _dict_not_none(
-        type='computed-field', property_name=property_name, return_schema=return_schema, alias=alias, metadata=metadata
+        type='computed-field',
+        property_name=property_name,
+        return_schema=return_schema,
+        alias=alias,
+        serialization_exclude_if=serialization_exclude_if,
+        metadata=metadata,
     )
 
 ```
@@ -947,6 +962,89 @@ def decimal_schema(
         decimal_places=decimal_places,
         multiple_of=multiple_of,
         allow_inf_nan=allow_inf_nan,
+        strict=strict,
+        ref=ref,
+        metadata=metadata,
+        serialization=serialization,
+    )
+
+````
+
+## fraction_schema
+
+```python
+fraction_schema(
+    *,
+    le: Fraction | None = None,
+    ge: Fraction | None = None,
+    lt: Fraction | None = None,
+    gt: Fraction | None = None,
+    strict: bool | None = None,
+    ref: str | None = None,
+    metadata: dict[str, Any] | None = None,
+    serialization: SerSchema | None = None
+) -> FractionSchema
+
+```
+
+Returns a schema that matches a fraction value, e.g.:
+
+```py
+from fractions import Fraction
+from pydantic_core import SchemaValidator, core_schema
+
+schema = core_schema.fraction_schema(le=Fraction(3, 4), ge=Fraction(1, 4))
+v = SchemaValidator(schema)
+assert v.validate_python('1/2') == Fraction(1, 2)
+
+```
+
+Parameters:
+
+| Name | Type | Description | Default | | --- | --- | --- | --- | | `le` | `Fraction | None` | The value must be less than or equal to this number | `None` | | `ge` | `Fraction | None` | The value must be greater than or equal to this number | `None` | | `lt` | `Fraction | None` | The value must be strictly less than this number | `None` | | `gt` | `Fraction | None` | The value must be strictly greater than this number | `None` | | `strict` | `bool | None` | Whether the value should be a Fraction or a value that can be converted to a Fraction | `None` | | `ref` | `str | None` | optional unique identifier of the schema, used to reference the schema in other places | `None` | | `metadata` | `dict[str, Any] | None` | Any other information you want to include with the schema, not used by pydantic-core | `None` | | `serialization` | `SerSchema | None` | Custom serialization schema | `None` |
+
+Source code in `pydantic_core/core_schema.py`
+
+````python
+def fraction_schema(
+    *,
+    le: Fraction | None = None,
+    ge: Fraction | None = None,
+    lt: Fraction | None = None,
+    gt: Fraction | None = None,
+    strict: bool | None = None,
+    ref: str | None = None,
+    metadata: dict[str, Any] | None = None,
+    serialization: SerSchema | None = None,
+) -> FractionSchema:
+    """
+    Returns a schema that matches a fraction value, e.g.:
+
+    ```py
+    from fractions import Fraction
+    from pydantic_core import SchemaValidator, core_schema
+
+    schema = core_schema.fraction_schema(le=Fraction(3, 4), ge=Fraction(1, 4))
+    v = SchemaValidator(schema)
+    assert v.validate_python('1/2') == Fraction(1, 2)
+    ```
+
+    Args:
+        le: The value must be less than or equal to this number
+        ge: The value must be greater than or equal to this number
+        lt: The value must be strictly less than this number
+        gt: The value must be strictly greater than this number
+        strict: Whether the value should be a Fraction or a value that can be converted to a Fraction
+        ref: optional unique identifier of the schema, used to reference the schema in other places
+        metadata: Any other information you want to include with the schema, not used by pydantic-core
+        serialization: Custom serialization schema
+    """
+    return _dict_not_none(
+        type='fraction',
+        gt=gt,
+        ge=ge,
+        lt=lt,
+        le=le,
         strict=strict,
         ref=ref,
         metadata=metadata,
@@ -3378,11 +3476,11 @@ with_default_schema(
     schema: CoreSchema,
     *,
     default: Any = PydanticUndefined,
-    default_factory: Union[
-        Callable[[], Any],
-        Callable[[dict[str, Any]], Any],
-        None,
-    ] = None,
+    default_factory: (
+        Callable[[], Any]
+        | Callable[[dict[str, Any]], Any]
+        | None
+    ) = None,
     default_factory_takes_data: bool | None = None,
     on_error: (
         Literal["raise", "omit", "default"] | None
@@ -3412,7 +3510,7 @@ assert v.validate_python({}) == v.validate_python({'a': 'hello'})
 
 Parameters:
 
-| Name | Type | Description | Default | | --- | --- | --- | --- | | `schema` | `CoreSchema` | The schema to add a default value to | *required* | | `default` | `Any` | The default value to use | `PydanticUndefined` | | `default_factory` | `Union[Callable[[], Any], Callable[[dict[str, Any]], Any], None]` | A callable that returns the default value to use | `None` | | `default_factory_takes_data` | `bool | None` | Whether the default factory takes a validated data argument | `None` | | `on_error` | `Literal['raise', 'omit', 'default'] | None` | What to do if the schema validation fails. One of 'raise', 'omit', 'default' | `None` | | `validate_default` | `bool | None` | Whether the default value should be validated | `None` | | `strict` | `bool | None` | Whether the underlying schema should be validated with strict mode | `None` | | `ref` | `str | None` | optional unique identifier of the schema, used to reference the schema in other places | `None` | | `metadata` | `dict[str, Any] | None` | Any other information you want to include with the schema, not used by pydantic-core | `None` | | `serialization` | `SerSchema | None` | Custom serialization schema | `None` |
+| Name | Type | Description | Default | | --- | --- | --- | --- | | `schema` | `CoreSchema` | The schema to add a default value to | *required* | | `default` | `Any` | The default value to use | `PydanticUndefined` | | `default_factory` | `Callable[[], Any] | Callable[[dict[str, Any]], Any] | None` | A callable that returns the default value to use | `None` | | `default_factory_takes_data` | `bool | None` | Whether the default factory takes a validated data argument | `None` | | `on_error` | `Literal['raise', 'omit', 'default'] | None` | What to do if the schema validation fails. One of 'raise', 'omit', 'default' | `None` | | `validate_default` | `bool | None` | Whether the default value should be validated | `None` | | `strict` | `bool | None` | Whether the underlying schema should be validated with strict mode | `None` | | `ref` | `str | None` | optional unique identifier of the schema, used to reference the schema in other places | `None` | | `metadata` | `dict[str, Any] | None` | Any other information you want to include with the schema, not used by pydantic-core | `None` | | `serialization` | `SerSchema | None` | Custom serialization schema | `None` |
 
 Source code in `pydantic_core/core_schema.py`
 
@@ -3421,7 +3519,7 @@ def with_default_schema(
     schema: CoreSchema,
     *,
     default: Any = PydanticUndefined,
-    default_factory: Union[Callable[[], Any], Callable[[dict[str, Any]], Any], None] = None,
+    default_factory: Callable[[], Any] | Callable[[dict[str, Any]], Any] | None = None,
     default_factory_takes_data: bool | None = None,
     on_error: Literal['raise', 'omit', 'default'] | None = None,
     validate_default: bool | None = None,
@@ -5803,3 +5901,27 @@ def definition_reference_schema(
     )
 
 ````
+
+## iter_union_choices
+
+```python
+iter_union_choices(
+    union_schema: UnionSchema,
+) -> Generator[CoreSchema]
+
+```
+
+Iterate over the choices of a `'union'` schema.
+
+Source code in `pydantic_core/core_schema.py`
+
+```python
+def iter_union_choices(union_schema: UnionSchema) -> Generator[CoreSchema]:
+    """Iterate over the choices of a `'union'` schema."""
+    for choice in union_schema['choices']:
+        if isinstance(choice, tuple):
+            yield choice[0]
+        else:
+            yield choice
+
+```

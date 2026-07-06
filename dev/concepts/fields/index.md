@@ -107,6 +107,8 @@ print(field_info.metadata)
 
 ```
 
+Deprecated in v2.11, will be removed in version v3: model_fields can only be accessed from the class object, not the instance.
+
 ## Default values
 
 Default values for fields can be provided using the normal assignment syntax or by providing a value to the `default` argument:
@@ -122,9 +124,7 @@ class User(BaseModel):
 
 ```
 
-Warning
-
-[In Pydantic V1](../../migration/#required-optional-and-nullable-fields), a type annotated as Any or wrapped by Optional would be given an implicit default of `None` even if no default was explicitly specified. This is no longer the case in Pydantic V2.
+Changed in v2: [In Pydantic V1](../../migration/#required-optional-and-nullable-fields), a type annotated as Any or wrapped by Optional would be given an implicit default of `None` even if no default was explicitly specified. This is no longer the case in Pydantic V2.
 
 You can also pass a callable to the `default_factory` argument that will be called to generate a default value:
 
@@ -157,6 +157,10 @@ print(user.username)
 ```
 
 The `data` argument will *only* contain the already validated data, based on the [order of model fields](../models/#field-ordering) (the above example would fail if `username` were to be defined before `email`).
+
+Added in v2.10: Default factories can take already validated data as an argument.
+
+Added in v2.13: Default factories for [private attributes](../models/#private-model-attributes) can take the validated data as an argument.
 
 ## Validate default values
 
@@ -410,6 +414,23 @@ class Model(BaseModel):
 
 The available constraints for each type (and the way they affect the JSON Schema) are described in the [standard library types](../../api/standard_library_types/) documentation.
 
+Note
+
+When adding constraints to a union type, if a member of the union is `None` or the [`MISSING` sentinel](../experimental/#missing-sentinel), the constraints will be automatically applied to the remaining type(s) of the union:
+
+```python
+from typing import Annotated
+
+from pydantic import BaseModel, Field
+
+
+class Model(BaseModel):
+    positive: int | None = Field(gt=0)
+    # Also works with the annotated pattern:
+    negative: Annotated[int | None, Field(lt=0)]
+
+```
+
 ## Strict fields
 
 The `strict` parameter of the Field() function specifies whether the field should be validated in [strict mode](../strict_mode/).
@@ -491,36 +512,9 @@ print(user)
 
 ## Discriminator
 
-The parameter `discriminator` can be used to control the field that will be used to discriminate between different models in a union. It takes either the name of a field or a `Discriminator` instance. The `Discriminator` approach can be useful when the discriminator fields aren't the same for all the models in the `Union`.
+The parameter `discriminator` can be used to control the field that will be used to discriminate between different models in a union. It takes either the name of a field or a `Discriminator` instance. The `Discriminator` approach can be useful when the discriminator fields aren't the same for all the models in the union.
 
 The following example shows how to use `discriminator` with a field name:
-
-```python
-from typing import Literal, Union
-
-from pydantic import BaseModel, Field
-
-
-class Cat(BaseModel):
-    pet_type: Literal['cat']
-    age: int
-
-
-class Dog(BaseModel):
-    pet_type: Literal['dog']
-    age: int
-
-
-class Model(BaseModel):
-    pet: Union[Cat, Dog] = Field(discriminator='pet_type')
-
-
-print(Model.model_validate({'pet': {'pet_type': 'cat', 'age': 12}}))  # (1)!
-#> pet=Cat(pet_type='cat', age=12)
-
-```
-
-1. See more about [Validating data](../models/#validating-data) in the [Models](../models/) page.
 
 ```python
 from typing import Literal
@@ -547,45 +541,9 @@ print(Model.model_validate({'pet': {'pet_type': 'cat', 'age': 12}}))  # (1)!
 
 ```
 
-1. See more about [Validating data](../models/#validating-data) in the [Models](../models/) page.
+1. See more about `model_validate()` in the [Validating data](../models/#validating-data) documentation.
 
 The following example shows how to use the `discriminator` keyword argument with a `Discriminator` instance:
-
-```python
-from typing import Annotated, Literal, Union
-
-from pydantic import BaseModel, Discriminator, Field, Tag
-
-
-class Cat(BaseModel):
-    pet_type: Literal['cat']
-    age: int
-
-
-class Dog(BaseModel):
-    pet_kind: Literal['dog']
-    age: int
-
-
-def pet_discriminator(v):
-    if isinstance(v, dict):
-        return v.get('pet_type', v.get('pet_kind'))
-    return getattr(v, 'pet_type', getattr(v, 'pet_kind', None))
-
-
-class Model(BaseModel):
-    pet: Union[Annotated[Cat, Tag('cat')], Annotated[Dog, Tag('dog')]] = Field(
-        discriminator=Discriminator(pet_discriminator)
-    )
-
-
-print(repr(Model.model_validate({'pet': {'pet_type': 'cat', 'age': 12}})))
-#> Model(pet=Cat(pet_type='cat', age=12))
-
-print(repr(Model.model_validate({'pet': {'pet_kind': 'dog', 'age': 12}})))
-#> Model(pet=Dog(pet_kind='dog', age=12))
-
-```
 
 ```python
 from typing import Annotated, Literal
@@ -623,7 +581,7 @@ print(repr(Model.model_validate({'pet': {'pet_kind': 'dog', 'age': 12}})))
 
 ```
 
-You can also take advantage of `Annotated` to define your discriminated unions. See the [Discriminated Unions](../unions/#discriminated-unions) docs for more details.
+You can also take advantage of `Annotated` to define your discriminated unions. See the [Discriminated Unions](../unions/#discriminated-unions) documentation for more details.
 
 ## Immutability
 
@@ -681,7 +639,11 @@ print(user.model_dump())  # (1)!
 
 See the dedicated [serialization section](../serialization/#field-inclusion-and-exclusion) for more details.
 
+Added in v2.12: The `exclude_if` parameter.
+
 ## Deprecated fields
+
+Added in v2.7.0.
 
 The `deprecated` parameter can be used to mark a field as being deprecated. Doing so will result in:
 
@@ -803,13 +765,15 @@ Read more about JSON schema customization / modification with fields in the [Cus
 
 API Documentation
 
-computed_field
+@computed_field
 
-The computed_field decorator can be used to include property or cached_property attributes when serializing a model or dataclass. The property will also be taken into account in the JSON Schema (in serialization mode).
+Added in v2.13: Computed fields can be conditionally excluded from the serialization output by using the `exclude_if` parameter of the decorator.
+
+The @computed_field decorator can be used to include properties (or cached properties) when serializing a model or dataclass. The property will also be included in the JSON Schema (in serialization mode).
 
 Note
 
-Properties can be useful for fields that are computed from other fields, or for fields that are expensive to be computed (and thus, are cached if using cached_property).
+Properties can be useful for fields that are computed from other fields, or for fields that are expensive to be computed (and thus, are cached if using @cached_property).
 
 However, note that Pydantic will *not* perform any additional logic on the wrapped property (validation, cache invalidation, etc.).
 
@@ -847,9 +811,9 @@ print(Box.model_json_schema(mode='serialization'))
 
 ```
 
-1. If not specified, computed_field will implicitly convert the method to a property. However, it is preferable to explicitly use the @property decorator for type checking purposes.
+1. If not specified, @computed_field will implicitly convert the method to a @property. However, it is preferable to explicitly use the @property decorator for type checking purposes.
 
-Here's an example using the `model_dump` method with a computed field:
+Here's an example using the model_dump() method with a computed field:
 
 ```python
 from pydantic import BaseModel, computed_field

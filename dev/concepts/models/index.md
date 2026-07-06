@@ -111,13 +111,11 @@ When defining your models, watch out for naming collisions between your field na
 For example, the following will not behave as expected and would yield a validation error:
 
 ```python
-from typing import Optional
-
 from pydantic import BaseModel
 
 
 class Boo(BaseModel):
-    int: Optional[int] = None
+    int: int | None = None
 
 
 m = Boo(int=123)  # Will fail to validate.
@@ -252,42 +250,6 @@ Pydantic dataclasses also support extra data (see the [dataclass configuration](
 More complex hierarchical data structures can be defined using models themselves as types in annotations.
 
 ```python
-from typing import Optional
-
-from pydantic import BaseModel
-
-
-class Foo(BaseModel):
-    count: int
-    size: Optional[float] = None
-
-
-class Bar(BaseModel):
-    apple: str = 'x'
-    banana: str = 'y'
-
-
-class Spam(BaseModel):
-    foo: Foo
-    bars: list[Bar]
-
-
-m = Spam(foo={'count': 4}, bars=[{'apple': 'x1'}, {'apple': 'x2'}])
-print(m)
-"""
-foo=Foo(count=4, size=None) bars=[Bar(apple='x1', banana='y'), Bar(apple='x2', banana='y')]
-"""
-print(m.model_dump())
-"""
-{
-    'foo': {'count': 4, 'size': None},
-    'bars': [{'apple': 'x1', 'banana': 'y'}, {'apple': 'x2', 'banana': 'y'}],
-}
-"""
-
-```
-
-```python
 from pydantic import BaseModel
 
 
@@ -389,57 +351,6 @@ Compared to using the model constructor, it is possible to control several valid
 Note
 
 Depending on the types and model configuration involved, the *Python* and *JSON* modes may have different validation behavior (e.g. with [strictness](../strict_mode/)). If you have data coming from a non-JSON source, but want the same validation behavior and errors you'd get from the *JSON* mode, our recommendation for now is to either dump your data to JSON (e.g. using json.dumps()), or use model_validate_strings() if the data takes the form of a (potentially nested) dictionary with string keys and values. Progress for this feature can be tracked in [this issue](https://github.com/pydantic/pydantic/issues/11154).
-
-```python
-from datetime import datetime
-from typing import Optional
-
-from pydantic import BaseModel, ValidationError
-
-
-class User(BaseModel):
-    id: int
-    name: str = 'John Doe'
-    signup_ts: Optional[datetime] = None
-
-
-m = User.model_validate({'id': 123, 'name': 'James'})
-print(m)
-#> id=123 name='James' signup_ts=None
-
-try:
-    m = User.model_validate_json('{"id": 123, "name": 123}')
-except ValidationError as e:
-    print(e)
-    """
-    1 validation error for User
-    name
-      Input should be a valid string [type=string_type, input_value=123, input_type=int]
-    """
-
-m = User.model_validate_strings({'id': '123', 'name': 'James'})
-print(m)
-#> id=123 name='James' signup_ts=None
-
-m = User.model_validate_strings(
-    {'id': '123', 'name': 'James', 'signup_ts': '2024-04-01T12:00:00'}
-)
-print(m)
-#> id=123 name='James' signup_ts=datetime.datetime(2024, 4, 1, 12, 0)
-
-try:
-    m = User.model_validate_strings(
-        {'id': '123', 'name': 'James', 'signup_ts': '2024-04-01'}, strict=True
-    )
-except ValidationError as e:
-    print(e)
-    """
-    1 validation error for User
-    signup_ts
-      Input should be a valid datetime, invalid datetime separator, expected `T`, `t`, `_` or space [type=datetime_parsing, input_value='2024-04-01', input_type=str]
-    """
-
-```
 
 ```python
 from datetime import datetime
@@ -801,6 +712,8 @@ except ValidationError as e:
 1. Declare a Pydantic model and add the list of type variables as type parameters.
 1. Use the type variables as annotations where you will want to replace them with other types.
 
+Added in v2.11: Full support for the type parameter syntax and [type variable defaults](https://typing.python.org/en/latest/spec/generics.html#type-parameter-defaults).
+
 Warning
 
 When parametrizing a model with a concrete type, Pydantic **does not** validate that the provided type is [assignable to the type variable](https://typing.readthedocs.io/en/latest/spec/generics.html#type-variables-with-an-upper-bound) if it has an upper bound.
@@ -959,7 +872,7 @@ except ValidationError as e:
 
 ```
 
-1. The `OuterT` model is parametrized with `int`, but the data associated with the the `T` annotations during validation is of type `str`, leading to validation errors.
+1. The `OuterT` model is parametrized with `int`, but the data associated with the `T` annotations during validation is of type `str`, leading to validation errors.
 
 Warning
 
@@ -1350,6 +1263,8 @@ Field definitions are specified as keyword arguments, and should either be:
 - A single element, representing the type annotation of the field.
 - A two-tuple, the first element being the type and the second element the assigned value (either a default or the Field() function).
 
+Changed in v2.11: When providing a single element for field definitions, any type can be used (previously, only an Annotated form could be provided).
+
 Here is a more advanced example:
 
 ```python
@@ -1439,6 +1354,12 @@ To pickle a dynamically created model:
 
 - the model must be defined globally
 - the `__module__` argument must be provided
+
+Warning
+
+This function may execute arbitrary code contained in field annotations, if string references need to be evaluated.
+
+See [Security implications of introspecting annotations](https://docs.python.org/3/library/annotationlib.html#annotationlib-security) for more information.
 
 See also: the [dynamic model example](../../examples/dynamic_models/), providing guidelines to derive an optional model from another one.
 
@@ -1687,6 +1608,8 @@ print(m._secret_value)
 ```
 
 Private attribute names must start with underscore to prevent conflicts with model fields. However, dunder names (such as `__attr__`) are not supported, and will be completely ignored from the model definition.
+
+Added in v2.13: Default factories can take the validated model data as an argument.
 
 ## Model signature
 

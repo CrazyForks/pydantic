@@ -10,7 +10,7 @@ A base class for creating Pydantic models.
 
 Attributes:
 
-| Name | Type | Description | | --- | --- | --- | | `__class_vars__` | `set[str]` | The names of the class variables defined on the model. | | `__private_attributes__` | `Dict[str, ModelPrivateAttr]` | Metadata about the private attributes of the model. | | `__signature__` | `Signature` | The synthesized __init__ Signature of the model. | | `__pydantic_complete__` | `bool` | Whether model building is completed, or if there are still undefined fields. | | `__pydantic_core_schema__` | `CoreSchema` | The core schema of the model. | | `__pydantic_custom_init__` | `bool` | Whether the model has a custom __init__ function. | | `__pydantic_decorators__` | `DecoratorInfos` | Metadata containing the decorators defined on the model. This replaces Model.__validators__ and Model.__root_validators__ from Pydantic V1. | | `__pydantic_generic_metadata__` | `PydanticGenericMetadata` | Metadata for generic models; contains data used for a similar purpose to args, origin, parameters in typing-module generics. May eventually be replaced by these. | | `__pydantic_parent_namespace__` | `Dict[str, Any] | None` | Parent namespace of the model, used for automatic rebuilding of models. | | `__pydantic_post_init__` | `None | Literal['model_post_init']` | The name of the post-init method for the model, if defined. | | `__pydantic_root_model__` | `bool` | Whether the model is a RootModel. | | `__pydantic_serializer__` | `SchemaSerializer` | The pydantic-core SchemaSerializer used to dump instances of the model. | | `__pydantic_validator__` | `SchemaValidator | PluggableSchemaValidator` | The pydantic-core SchemaValidator used to validate instances of the model. | | `__pydantic_fields__` | `Dict[str, FieldInfo]` | A dictionary of field names and their corresponding FieldInfo objects. | | `__pydantic_computed_fields__` | `Dict[str, ComputedFieldInfo]` | A dictionary of computed field names and their corresponding ComputedFieldInfo objects. | | `__pydantic_extra__` | `Dict[str, Any] | None` | A dictionary containing extra values, if extra is set to 'allow'. | | `__pydantic_fields_set__` | `set[str]` | The names of fields explicitly set during instantiation. | | `__pydantic_private__` | `Dict[str, Any] | None` | Values of private attributes set on the model instance. |
+| Name | Type | Description | | --- | --- | --- | | `__class_vars__` | `set[str]` | The names of the class variables defined on the model. | | `__private_attributes__` | `Dict[str, ModelPrivateAttr]` | Metadata about the private attributes of the model. | | `__signature__` | `Signature` | The synthesized __init__ Signature of the model. | | `__pydantic_complete__` | `bool` | Whether model building is completed, or if there are still undefined fields. | | `__pydantic_core_schema__` | `CoreSchema` | The core schema of the model. | | `__pydantic_custom_init__` | `bool` | Whether the model has a custom __init__ function. | | `__pydantic_decorators__` | `DecoratorInfos` | Metadata containing the decorators defined on the model. This replaces Model.__validators__ and Model.__root_validators__ from Pydantic V1. | | `__pydantic_generic_metadata__` | `PydanticGenericMetadata` | A dictionary containing metadata about generic Pydantic models. The origin and args items map to the __origin__ and __args__ attributes of generic aliases, and the parameter item maps to the __parameter__ attribute of generic classes. | | `__pydantic_parent_namespace__` | `Dict[str, Any] | None` | Parent namespace of the model, used for automatic rebuilding of models. | | `__pydantic_post_init__` | `None | Literal['model_post_init']` | The name of the post-init method for the model, if defined. | | `__pydantic_root_model__` | `bool` | Whether the model is a RootModel. | | `__pydantic_serializer__` | `SchemaSerializer` | The pydantic-core SchemaSerializer used to dump instances of the model. | | `__pydantic_validator__` | `SchemaValidator | PluggableSchemaValidator` | The pydantic-core SchemaValidator used to validate instances of the model. | | `__pydantic_fields__` | `Dict[str, FieldInfo]` | A dictionary of field names and their corresponding FieldInfo objects. | | `__pydantic_computed_fields__` | `Dict[str, ComputedFieldInfo]` | A dictionary of computed field names and their corresponding ComputedFieldInfo objects. | | `__pydantic_extra__` | `Dict[str, Any] | None` | A dictionary containing extra values, if extra is set to 'allow'. | | `__pydantic_fields_set__` | `set[str]` | The names of fields explicitly set during instantiation. | | `__pydantic_private__` | `Dict[str, Any] | None` | Values of private attributes set on the model instance. |
 
 Source code in `pydantic/main.py`
 
@@ -31,8 +31,10 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
         __pydantic_custom_init__: Whether the model has a custom `__init__` function.
         __pydantic_decorators__: Metadata containing the decorators defined on the model.
             This replaces `Model.__validators__` and `Model.__root_validators__` from Pydantic V1.
-        __pydantic_generic_metadata__: Metadata for generic models; contains data used for a similar purpose to
-            __args__, __origin__, __parameters__ in typing-module generics. May eventually be replaced by these.
+        __pydantic_generic_metadata__: A dictionary containing metadata about generic Pydantic models.
+            The `origin` and `args` items map to the [`__origin__`][genericalias.__origin__]
+            and [`__args__`][genericalias.__args__] attributes of [generic aliases][types-genericalias],
+            and the `parameter` item maps to the `__parameter__` attribute of generic classes.
         __pydantic_parent_namespace__: Parent namespace of the model, used for automatic rebuilding of models.
         __pydantic_post_init__: The name of the post-init method for the model, if defined.
         __pydantic_root_model__: Whether the model is a [`RootModel`][pydantic.root_model.RootModel].
@@ -79,8 +81,12 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
     This replaces `Model.__validators__` and `Model.__root_validators__` from Pydantic V1."""
 
     __pydantic_generic_metadata__: ClassVar[_generics.PydanticGenericMetadata]
-    """Metadata for generic models; contains data used for a similar purpose to
-    __args__, __origin__, __parameters__ in typing-module generics. May eventually be replaced by these."""
+    """A dictionary containing metadata about generic Pydantic models.
+
+    The `origin` and `args` items map to the [`__origin__`][genericalias.__origin__]
+    and [`__args__`][genericalias.__args__] attributes of [generic aliases][types-genericalias],
+    and the `parameter` item maps to the `__parameter__` attribute of generic classes.
+    """
 
     __pydantic_parent_namespace__: ClassVar[Dict[str, Any] | None] = None  # noqa: UP006
     """Parent namespace of the model, used for automatic rebuilding of models."""
@@ -107,6 +113,12 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
 
     __pydantic_computed_fields__: ClassVar[Dict[str, ComputedFieldInfo]]  # noqa: UP006
     """A dictionary of computed field names and their corresponding [`ComputedFieldInfo`][pydantic.fields.ComputedFieldInfo] objects."""
+
+    __pydantic_extra_info__: ClassVar[PydanticExtraInfo | None]
+    """A wrapper around the `__pydantic_extra__` annotation, if explicitly annotated on a model.
+
+    This is a private attribute, not meant to be used outside Pydantic.
+    """
 
     __pydantic_extra__: Dict[str, Any] | None = _model_construction.NoInitField(init=False)  # noqa: UP006
     """A dictionary containing extra values, if [`extra`][pydantic.config.ConfigDict.extra] is set to `'allow'`."""
@@ -152,7 +164,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
             warnings.warn(
                 'A custom validator is returning a value other than `self`.\n'
                 "Returning anything other than `self` from a top level model validator isn't supported when validating via `__init__`.\n"
-                'See the `model_validator` docs (https://docs.pydantic.dev/latest/concepts/validators/#model-validators) for more details.',
+                'See the `model_validator` docs (https://pydantic.dev/docs/validation/latest/concepts/validators/#model-validators) for more details.',
                 stacklevel=2,
             )
 
@@ -265,6 +277,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
         _object_setattr(m, '__pydantic_fields_set__', _fields_set)
         if not cls.__pydantic_root_model__:
             _object_setattr(m, '__pydantic_extra__', _extra)
+            _object_setattr(m, '__pydantic_private__', None)
 
         if cls.__pydantic_post_init__:
             m.model_post_init(None)
@@ -273,11 +286,6 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
                 for k, v in values.items():
                     if k in m.__private_attributes__:
                         m.__pydantic_private__[k] = v
-
-        elif not cls.__pydantic_root_model__:
-            # Note: if there are any private attributes, cls.__pydantic_post_init__ would exist
-            # Since it doesn't, that means that `__pydantic_private__` should be set to None
-            _object_setattr(m, '__pydantic_private__', None)
 
         return m
 
@@ -293,14 +301,40 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
             fields (e.g. the value of [cached properties][functools.cached_property]).
 
         Args:
-            update: Values to change/add in the new model. Note: the data is not validated
-                before creating the new model. You should trust this data.
-            deep: Set to `True` to make a deep copy of the model.
+            update: A mapping of values to update the copied model. Updates are *not*
+                applied recursively, and no validation is performed on updated values.
+                Only the known fields are updated (if unknown keys are being passed and
+                the model has [`extra`][pydantic.ConfigDict.extra] set to `'allow'`, they
+                are added as extra data).
+            deep: Whether a [deep copy][copy.deepcopy] of the model should be performed.
 
         Returns:
             New model instance.
         """
-        copied = self.__deepcopy__() if deep else self.__copy__()
+        if deep and update:
+            # Only deep copy the fields that won't be updated:
+            copied = self.__copy__()
+
+            # As we make separate `deepcopy()` calls, use a shared memo:
+            memo: dict[int, Any] = {}
+
+            # Selectively deepcopy fields that are not being updated:
+            for k, v in copied.__dict__.items():
+                if k not in update:
+                    copied.__dict__[k] = deepcopy(v, memo)
+            if copied.__pydantic_extra__ is not None:
+                for k, v in copied.__pydantic_extra__.items():
+                    if k not in update:
+                        copied.__pydantic_extra__[k] = deepcopy(v, memo)
+            if copied.__pydantic_private__ is not None:
+                # Same logic as `BaseModel.__deepcopy__()`:
+                copied.__pydantic_private__ = deepcopy(
+                    {k: v for k, v in copied.__pydantic_private__.items() if v is not PydanticUndefined},
+                    memo,
+                )
+        else:
+            copied = self.__deepcopy__() if deep else self.__copy__()
+
         if update:
             if self.model_config.get('extra') == 'allow':
                 for k, v in update.items():
@@ -312,7 +346,9 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
                         copied.__pydantic_extra__[k] = v
             else:
                 copied.__dict__.update(update)
+
             copied.__pydantic_fields_set__.update(update.keys())
+
         return copied
 
     def model_dump(
@@ -331,6 +367,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
         warnings: bool | Literal['none', 'warn', 'error'] = True,
         fallback: Callable[[Any], Any] | None = None,
         serialize_as_any: bool = False,
+        polymorphic_serialization: bool | None = None,
     ) -> dict[str, Any]:
         """!!! abstract "Usage Documentation"
             [`model_dump`](../concepts/serialization.md#python-mode)
@@ -357,6 +394,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
             fallback: A function to call when an unknown value is encountered. If not provided,
                 a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError] error is raised.
             serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
+            polymorphic_serialization: Whether to use model and dataclass polymorphic serialization for this call.
 
         Returns:
             A dictionary representation of the model.
@@ -376,6 +414,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
             warnings=warnings,
             fallback=fallback,
             serialize_as_any=serialize_as_any,
+            polymorphic_serialization=polymorphic_serialization,
         )
 
     def model_dump_json(
@@ -395,6 +434,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
         warnings: bool | Literal['none', 'warn', 'error'] = True,
         fallback: Callable[[Any], Any] | None = None,
         serialize_as_any: bool = False,
+        polymorphic_serialization: bool | None = None,
     ) -> str:
         """!!! abstract "Usage Documentation"
             [`model_dump_json`](../concepts/serialization.md#json-mode)
@@ -421,6 +461,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
             fallback: A function to call when an unknown value is encountered. If not provided,
                 a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError] error is raised.
             serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
+            polymorphic_serialization: Whether to use model and dataclass polymorphic serialization for this call.
 
         Returns:
             A JSON string representation of the model.
@@ -441,6 +482,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
             warnings=warnings,
             fallback=fallback,
             serialize_as_any=serialize_as_any,
+            polymorphic_serialization=polymorphic_serialization,
         ).decode()
 
     @classmethod
@@ -572,6 +614,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
             raise_errors=raise_errors,
             # If the model was already complete, we don't need to call the hook again.
             call_on_complete_hook=not already_complete,
+            is_force_rebuild=force,
         )
 
     @classmethod
@@ -980,6 +1023,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
                 elif attr is None:
                     # attribute does not exist, so put it in extra
                     self.__pydantic_extra__[name] = value
+                    self.__pydantic_fields_set__.add(name)
                     return None  # Can not return memoized handler with possibly freeform attr names
                 else:
                     # attribute _does_ exist, and was not in extra, so update it
@@ -1054,9 +1098,11 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
 
                 # Perform common checks first
                 if not (
-                    self_type == other_type
+                    self_type is other_type
                     and getattr(self, '__pydantic_private__', None) == getattr(other, '__pydantic_private__', None)
-                    and self.__pydantic_extra__ == other.__pydantic_extra__
+                    # We need to assume `None` and `{}` are equivalent, because extra behavior
+                    # can be controlled at validation time:
+                    and (self.__pydantic_extra__ or {}) == (other.__pydantic_extra__ or {})
                 ):
                     return False
 
@@ -1608,7 +1654,7 @@ def __init__(self, /, **data: Any) -> None:
         warnings.warn(
             'A custom validator is returning a value other than `self`.\n'
             "Returning anything other than `self` from a top level model validator isn't supported when validating via `__init__`.\n"
-            'See the `model_validator` docs (https://docs.pydantic.dev/latest/concepts/validators/#model-validators) for more details.',
+            'See the `model_validator` docs (https://pydantic.dev/docs/validation/latest/concepts/validators/#model-validators) for more details.',
             stacklevel=2,
         )
 
@@ -1809,6 +1855,7 @@ def model_construct(cls, _fields_set: set[str] | None = None, **values: Any) -> 
     _object_setattr(m, '__pydantic_fields_set__', _fields_set)
     if not cls.__pydantic_root_model__:
         _object_setattr(m, '__pydantic_extra__', _extra)
+        _object_setattr(m, '__pydantic_private__', None)
 
     if cls.__pydantic_post_init__:
         m.model_post_init(None)
@@ -1817,11 +1864,6 @@ def model_construct(cls, _fields_set: set[str] | None = None, **values: Any) -> 
             for k, v in values.items():
                 if k in m.__private_attributes__:
                     m.__pydantic_private__[k] = v
-
-    elif not cls.__pydantic_root_model__:
-        # Note: if there are any private attributes, cls.__pydantic_post_init__ would exist
-        # Since it doesn't, that means that `__pydantic_private__` should be set to None
-        _object_setattr(m, '__pydantic_private__', None)
 
     return m
 
@@ -1850,7 +1892,7 @@ The underlying instance's __dict__ attribute is copied. This might have unexpect
 
 Parameters:
 
-| Name | Type | Description | Default | | --- | --- | --- | --- | | `update` | `Mapping[str, Any] | None` | Values to change/add in the new model. Note: the data is not validated before creating the new model. You should trust this data. | `None` | | `deep` | `bool` | Set to True to make a deep copy of the model. | `False` |
+| Name | Type | Description | Default | | --- | --- | --- | --- | | `update` | `Mapping[str, Any] | None` | A mapping of values to update the copied model. Updates are not applied recursively, and no validation is performed on updated values. Only the known fields are updated (if unknown keys are being passed and the model has extra set to 'allow', they are added as extra data). | `None` | | `deep` | `bool` | Whether a deep copy of the model should be performed. | `False` |
 
 Returns:
 
@@ -1871,14 +1913,40 @@ def model_copy(self, *, update: Mapping[str, Any] | None = None, deep: bool = Fa
         fields (e.g. the value of [cached properties][functools.cached_property]).
 
     Args:
-        update: Values to change/add in the new model. Note: the data is not validated
-            before creating the new model. You should trust this data.
-        deep: Set to `True` to make a deep copy of the model.
+        update: A mapping of values to update the copied model. Updates are *not*
+            applied recursively, and no validation is performed on updated values.
+            Only the known fields are updated (if unknown keys are being passed and
+            the model has [`extra`][pydantic.ConfigDict.extra] set to `'allow'`, they
+            are added as extra data).
+        deep: Whether a [deep copy][copy.deepcopy] of the model should be performed.
 
     Returns:
         New model instance.
     """
-    copied = self.__deepcopy__() if deep else self.__copy__()
+    if deep and update:
+        # Only deep copy the fields that won't be updated:
+        copied = self.__copy__()
+
+        # As we make separate `deepcopy()` calls, use a shared memo:
+        memo: dict[int, Any] = {}
+
+        # Selectively deepcopy fields that are not being updated:
+        for k, v in copied.__dict__.items():
+            if k not in update:
+                copied.__dict__[k] = deepcopy(v, memo)
+        if copied.__pydantic_extra__ is not None:
+            for k, v in copied.__pydantic_extra__.items():
+                if k not in update:
+                    copied.__pydantic_extra__[k] = deepcopy(v, memo)
+        if copied.__pydantic_private__ is not None:
+            # Same logic as `BaseModel.__deepcopy__()`:
+            copied.__pydantic_private__ = deepcopy(
+                {k: v for k, v in copied.__pydantic_private__.items() if v is not PydanticUndefined},
+                memo,
+            )
+    else:
+        copied = self.__deepcopy__() if deep else self.__copy__()
+
     if update:
         if self.model_config.get('extra') == 'allow':
             for k, v in update.items():
@@ -1890,7 +1958,9 @@ def model_copy(self, *, update: Mapping[str, Any] | None = None, deep: bool = Fa
                     copied.__pydantic_extra__[k] = v
         else:
             copied.__dict__.update(update)
+
         copied.__pydantic_fields_set__.update(update.keys())
+
     return copied
 
 ```
@@ -1914,7 +1984,8 @@ model_dump(
         bool | Literal["none", "warn", "error"]
     ) = True,
     fallback: Callable[[Any], Any] | None = None,
-    serialize_as_any: bool = False
+    serialize_as_any: bool = False,
+    polymorphic_serialization: bool | None = None
 ) -> dict[str, Any]
 
 ```
@@ -1927,7 +1998,7 @@ Generate a dictionary representation of the model, optionally specifying which f
 
 Parameters:
 
-| Name | Type | Description | Default | | --- | --- | --- | --- | | `mode` | `Literal['json', 'python'] | str` | The mode in which to_python should run. If mode is 'json', the output will only contain JSON serializable types. If mode is 'python', the output may contain non-JSON-serializable Python objects. | `'python'` | | `include` | `IncEx | None` | A set of fields to include in the output. | `None` | | `exclude` | `IncEx | None` | A set of fields to exclude from the output. | `None` | | `context` | `Any | None` | Additional context to pass to the serializer. | `None` | | `by_alias` | `bool | None` | Whether to use the field's alias in the dictionary key if defined. | `None` | | `exclude_unset` | `bool` | Whether to exclude fields that have not been explicitly set. | `False` | | `exclude_defaults` | `bool` | Whether to exclude fields that are set to their default value. | `False` | | `exclude_none` | `bool` | Whether to exclude fields that have a value of None. | `False` | | `exclude_computed_fields` | `bool` | Whether to exclude computed fields. While this can be useful for round-tripping, it is usually recommended to use the dedicated round_trip parameter instead. | `False` | | `round_trip` | `bool` | If True, dumped values should be valid as input for non-idempotent types such as Json[T]. | `False` | | `warnings` | `bool | Literal['none', 'warn', 'error']` | How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors, "error" raises a PydanticSerializationError. | `True` | | `fallback` | `Callable[[Any], Any] | None` | A function to call when an unknown value is encountered. If not provided, a PydanticSerializationError error is raised. | `None` | | `serialize_as_any` | `bool` | Whether to serialize fields with duck-typing serialization behavior. | `False` |
+| Name | Type | Description | Default | | --- | --- | --- | --- | | `mode` | `Literal['json', 'python'] | str` | The mode in which to_python should run. If mode is 'json', the output will only contain JSON serializable types. If mode is 'python', the output may contain non-JSON-serializable Python objects. | `'python'` | | `include` | `IncEx | None` | A set of fields to include in the output. | `None` | | `exclude` | `IncEx | None` | A set of fields to exclude from the output. | `None` | | `context` | `Any | None` | Additional context to pass to the serializer. | `None` | | `by_alias` | `bool | None` | Whether to use the field's alias in the dictionary key if defined. | `None` | | `exclude_unset` | `bool` | Whether to exclude fields that have not been explicitly set. | `False` | | `exclude_defaults` | `bool` | Whether to exclude fields that are set to their default value. | `False` | | `exclude_none` | `bool` | Whether to exclude fields that have a value of None. | `False` | | `exclude_computed_fields` | `bool` | Whether to exclude computed fields. While this can be useful for round-tripping, it is usually recommended to use the dedicated round_trip parameter instead. | `False` | | `round_trip` | `bool` | If True, dumped values should be valid as input for non-idempotent types such as Json[T]. | `False` | | `warnings` | `bool | Literal['none', 'warn', 'error']` | How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors, "error" raises a PydanticSerializationError. | `True` | | `fallback` | `Callable[[Any], Any] | None` | A function to call when an unknown value is encountered. If not provided, a PydanticSerializationError error is raised. | `None` | | `serialize_as_any` | `bool` | Whether to serialize fields with duck-typing serialization behavior. | `False` | | `polymorphic_serialization` | `bool | None` | Whether to use model and dataclass polymorphic serialization for this call. | `None` |
 
 Returns:
 
@@ -1952,6 +2023,7 @@ def model_dump(
     warnings: bool | Literal['none', 'warn', 'error'] = True,
     fallback: Callable[[Any], Any] | None = None,
     serialize_as_any: bool = False,
+    polymorphic_serialization: bool | None = None,
 ) -> dict[str, Any]:
     """!!! abstract "Usage Documentation"
         [`model_dump`](../concepts/serialization.md#python-mode)
@@ -1978,6 +2050,7 @@ def model_dump(
         fallback: A function to call when an unknown value is encountered. If not provided,
             a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError] error is raised.
         serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
+        polymorphic_serialization: Whether to use model and dataclass polymorphic serialization for this call.
 
     Returns:
         A dictionary representation of the model.
@@ -1997,6 +2070,7 @@ def model_dump(
         warnings=warnings,
         fallback=fallback,
         serialize_as_any=serialize_as_any,
+        polymorphic_serialization=polymorphic_serialization,
     )
 
 ```
@@ -2021,7 +2095,8 @@ model_dump_json(
         bool | Literal["none", "warn", "error"]
     ) = True,
     fallback: Callable[[Any], Any] | None = None,
-    serialize_as_any: bool = False
+    serialize_as_any: bool = False,
+    polymorphic_serialization: bool | None = None
 ) -> str
 
 ```
@@ -2034,7 +2109,7 @@ Generates a JSON representation of the model using Pydantic's `to_json` method.
 
 Parameters:
 
-| Name | Type | Description | Default | | --- | --- | --- | --- | | `indent` | `int | None` | Indentation to use in the JSON output. If None is passed, the output will be compact. | `None` | | `ensure_ascii` | `bool` | If True, the output is guaranteed to have all incoming non-ASCII characters escaped. If False (the default), these characters will be output as-is. | `False` | | `include` | `IncEx | None` | Field(s) to include in the JSON output. | `None` | | `exclude` | `IncEx | None` | Field(s) to exclude from the JSON output. | `None` | | `context` | `Any | None` | Additional context to pass to the serializer. | `None` | | `by_alias` | `bool | None` | Whether to serialize using field aliases. | `None` | | `exclude_unset` | `bool` | Whether to exclude fields that have not been explicitly set. | `False` | | `exclude_defaults` | `bool` | Whether to exclude fields that are set to their default value. | `False` | | `exclude_none` | `bool` | Whether to exclude fields that have a value of None. | `False` | | `exclude_computed_fields` | `bool` | Whether to exclude computed fields. While this can be useful for round-tripping, it is usually recommended to use the dedicated round_trip parameter instead. | `False` | | `round_trip` | `bool` | If True, dumped values should be valid as input for non-idempotent types such as Json[T]. | `False` | | `warnings` | `bool | Literal['none', 'warn', 'error']` | How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors, "error" raises a PydanticSerializationError. | `True` | | `fallback` | `Callable[[Any], Any] | None` | A function to call when an unknown value is encountered. If not provided, a PydanticSerializationError error is raised. | `None` | | `serialize_as_any` | `bool` | Whether to serialize fields with duck-typing serialization behavior. | `False` |
+| Name | Type | Description | Default | | --- | --- | --- | --- | | `indent` | `int | None` | Indentation to use in the JSON output. If None is passed, the output will be compact. | `None` | | `ensure_ascii` | `bool` | If True, the output is guaranteed to have all incoming non-ASCII characters escaped. If False (the default), these characters will be output as-is. | `False` | | `include` | `IncEx | None` | Field(s) to include in the JSON output. | `None` | | `exclude` | `IncEx | None` | Field(s) to exclude from the JSON output. | `None` | | `context` | `Any | None` | Additional context to pass to the serializer. | `None` | | `by_alias` | `bool | None` | Whether to serialize using field aliases. | `None` | | `exclude_unset` | `bool` | Whether to exclude fields that have not been explicitly set. | `False` | | `exclude_defaults` | `bool` | Whether to exclude fields that are set to their default value. | `False` | | `exclude_none` | `bool` | Whether to exclude fields that have a value of None. | `False` | | `exclude_computed_fields` | `bool` | Whether to exclude computed fields. While this can be useful for round-tripping, it is usually recommended to use the dedicated round_trip parameter instead. | `False` | | `round_trip` | `bool` | If True, dumped values should be valid as input for non-idempotent types such as Json[T]. | `False` | | `warnings` | `bool | Literal['none', 'warn', 'error']` | How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors, "error" raises a PydanticSerializationError. | `True` | | `fallback` | `Callable[[Any], Any] | None` | A function to call when an unknown value is encountered. If not provided, a PydanticSerializationError error is raised. | `None` | | `serialize_as_any` | `bool` | Whether to serialize fields with duck-typing serialization behavior. | `False` | | `polymorphic_serialization` | `bool | None` | Whether to use model and dataclass polymorphic serialization for this call. | `None` |
 
 Returns:
 
@@ -2060,6 +2135,7 @@ def model_dump_json(
     warnings: bool | Literal['none', 'warn', 'error'] = True,
     fallback: Callable[[Any], Any] | None = None,
     serialize_as_any: bool = False,
+    polymorphic_serialization: bool | None = None,
 ) -> str:
     """!!! abstract "Usage Documentation"
         [`model_dump_json`](../concepts/serialization.md#json-mode)
@@ -2086,6 +2162,7 @@ def model_dump_json(
         fallback: A function to call when an unknown value is encountered. If not provided,
             a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError] error is raised.
         serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
+        polymorphic_serialization: Whether to use model and dataclass polymorphic serialization for this call.
 
     Returns:
         A JSON string representation of the model.
@@ -2106,6 +2183,7 @@ def model_dump_json(
         warnings=warnings,
         fallback=fallback,
         serialize_as_any=serialize_as_any,
+        polymorphic_serialization=polymorphic_serialization,
     ).decode()
 
 ```
@@ -2186,7 +2264,7 @@ def model_json_schema(
 
 ```python
 model_parametrized_name(
-    params: tuple[type[Any], ...]
+    params: tuple[type[Any], ...],
 ) -> str
 
 ```
@@ -2344,6 +2422,7 @@ def model_rebuild(
         raise_errors=raise_errors,
         # If the model was already complete, we don't need to call the hook again.
         call_on_complete_hook=not already_complete,
+        is_force_rebuild=force,
     )
 
 ```
@@ -2598,7 +2677,7 @@ create_model(
     ) = None,
     __cls_kwargs__: dict[str, Any] | None = None,
     __qualname__: str | None = None,
-    **field_definitions: Any | tuple[str, Any],
+    **field_definitions: Any | tuple[Any, Any],
 ) -> type[BaseModel]
 
 ```
@@ -2617,7 +2696,7 @@ create_model(
     ) = None,
     __cls_kwargs__: dict[str, Any] | None = None,
     __qualname__: str | None = None,
-    **field_definitions: Any | tuple[str, Any],
+    **field_definitions: Any | tuple[Any, Any],
 ) -> type[ModelT]
 
 ```
@@ -2638,7 +2717,7 @@ create_model(
     ) = None,
     __cls_kwargs__: dict[str, Any] | None = None,
     __qualname__: str | None = None,
-    **field_definitions: Any | tuple[str, Any],
+    **field_definitions: Any | tuple[Any, Any],
 ) -> type[ModelT]
 
 ```
@@ -2647,11 +2726,17 @@ Usage Documentation
 
 [Dynamic Model Creation](../../concepts/models/#dynamic-model-creation)
 
-Dynamically creates and returns a new Pydantic model, in other words, `create_model` dynamically creates a subclass of BaseModel.
+Dynamically creates and returns a new Pydantic model. In other words, `create_model()` dynamically creates a subclass of BaseModel.
+
+Warning
+
+This function may execute arbitrary code contained in field annotations, if string references need to be evaluated.
+
+See [Security implications of introspecting annotations](https://docs.python.org/3/library/annotationlib.html#annotationlib-security) for more information.
 
 Parameters:
 
-| Name | Type | Description | Default | | --- | --- | --- | --- | | `model_name` | `str` | The name of the newly created model. | *required* | | `__config__` | `ConfigDict | None` | The configuration of the new model. | `None` | | `__doc__` | `str | None` | The docstring of the new model. | `None` | | `__base__` | `type[ModelT] | tuple[type[ModelT], ...] | None` | The base class or classes for the new model. | `None` | | `__module__` | `str | None` | The name of the module that the model belongs to; if None, the value is taken from sys.\_getframe(1) | `None` | | `__validators__` | `dict[str, Callable[..., Any]] | None` | A dictionary of methods that validate fields. The keys are the names of the validation methods to be added to the model, and the values are the validation methods themselves. You can read more about functional validators here. | `None` | | `__cls_kwargs__` | `dict[str, Any] | None` | A dictionary of keyword arguments for class creation, such as metaclass. | `None` | | `__qualname__` | `str | None` | The qualified name of the newly created model. | `None` | | `**field_definitions` | `Any | tuple[str, Any]` | Field definitions of the new model. Either: a single element, representing the type annotation of the field. a two-tuple, the first element being the type and the second element the assigned value (either a default or the Field() function). | `{}` |
+| Name | Type | Description | Default | | --- | --- | --- | --- | | `model_name` | `str` | The name of the newly created model. | *required* | | `__config__` | `ConfigDict | None` | The configuration of the new model. | `None` | | `__doc__` | `str | None` | The docstring of the new model. | `None` | | `__base__` | `type[ModelT] | tuple[type[ModelT], ...] | None` | The base class or classes for the new model. | `None` | | `__module__` | `str | None` | The name of the module that the model belongs to; if None, the value is taken from sys.\_getframe(1) | `None` | | `__validators__` | `dict[str, Callable[..., Any]] | None` | A dictionary of methods that validate fields. The keys are the names of the validation methods to be added to the model, and the values are the validation methods themselves. You can read more about functional validators here. | `None` | | `__cls_kwargs__` | `dict[str, Any] | None` | A dictionary of keyword arguments for class creation, such as metaclass. | `None` | | `__qualname__` | `str | None` | The qualified name of the newly created model. | `None` | | `**field_definitions` | `Any | tuple[Any, Any]` | Field definitions of the new model. Either: a single element, representing the type annotation of the field. a two-tuple, the first element being the type and the second element the assigned value (either a default or the Field() function). | `{}` |
 
 Returns:
 
@@ -2676,13 +2761,18 @@ def create_model(  # noqa: C901
     __cls_kwargs__: dict[str, Any] | None = None,
     __qualname__: str | None = None,
     # TODO PEP 747: replace `Any` by the TypeForm:
-    **field_definitions: Any | tuple[str, Any],
+    **field_definitions: Any | tuple[Any, Any],
 ) -> type[ModelT]:
     """!!! abstract "Usage Documentation"
         [Dynamic Model Creation](../concepts/models.md#dynamic-model-creation)
 
-    Dynamically creates and returns a new Pydantic model, in other words, `create_model` dynamically creates a
+    Dynamically creates and returns a new Pydantic model. In other words, `create_model()` dynamically creates a
     subclass of [`BaseModel`][pydantic.BaseModel].
+
+    !!! warning
+        This function may execute arbitrary code contained in field annotations, if string references need to be evaluated.
+
+        See [Security implications of introspecting annotations](https://docs.python.org/3/library/annotationlib.html#annotationlib-security) for more information.
 
     Args:
         model_name: The name of the newly created model.
@@ -2693,7 +2783,7 @@ def create_model(  # noqa: C901
             if `None`, the value is taken from `sys._getframe(1)`
         __validators__: A dictionary of methods that validate fields. The keys are the names of the validation methods to
             be added to the model, and the values are the validation methods themselves. You can read more about functional
-            validators [here](https://docs.pydantic.dev/2.9/concepts/validators/#field-validators).
+            validators [here](../concepts/validators.md#field-validators).
         __cls_kwargs__: A dictionary of keyword arguments for class creation, such as `metaclass`.
         __qualname__: The qualified name of the newly created model.
         **field_definitions: Field definitions of the new model. Either:
