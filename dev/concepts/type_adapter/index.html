@@ -121,7 +121,7 @@ What's new &mdash; we've launched
 <a href="https://pydantic.dev/articles/logfire-announcement">Pydantic Logfire</a>
 <img alt="🔥" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/svg/1f525.svg" title=":fire:">
 to help you monitor and understand your
-<a href="https://logfire.pydantic.dev/docs/integrations/pydantic/" id="logfire-app-type" target="_blank">Pydantic validations.</a>
+<a href="https://pydantic.dev/docs/logfire/integrations/pydantic/" id="logfire-app-type" target="_blank">Pydantic validations.</a>
 
           </div>
           
@@ -3207,6 +3207,34 @@ to help you monitor and understand your
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting with Logfire
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -4006,6 +4034,10 @@ but works with arbitrary Pydantic-compatible types.</p>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../api/type_adapter/#pydantic.type_adapter.TypeAdapter"><code>TypeAdapter</code></a> is capable of parsing data into any of the types Pydantic can
 handle as fields of a <a class="autorefs autorefs-internal" href="../../api/base_model/#pydantic.BaseModel"><code>BaseModel</code></a>.</p>
+<p>Data parsed this way often comes from a source you don't control, like the API call in the example
+above, so validation can fail long after the code has shipped. A <code>TypeAdapter</code> raises the same
+structured errors as a model, so tooling that records validation failures in production, such as
+<a href="../../integrations/logfire/">Logfire</a>, captures these too.</p>
 <div class="admonition info">
 <p class="admonition-title">Performance considerations</p>
 <p>When creating an instance of <a class="autorefs autorefs-internal" href="../../api/type_adapter/#pydantic.type_adapter.TypeAdapter"><code>TypeAdapter</code></a>, the provided type must be analyzed and converted into a pydantic-core
@@ -4105,7 +4137,7 @@ Pydantic will defer building the core schema until the first time it is needed (
                 
   <script src="/flarelytics/client.js"></script>
       <script>
-    window.mkdocs_run_deps = ["pydantic==2.14.0a1", "email-validator>=2.0.0", "pydantic-core==2.47.0", "pydantic-extra-types==2.10.6"]
+    window.mkdocs_run_deps = ["pydantic==2.14.0b1", "email-validator>=2.0.0", "pydantic-core==2.48.0", "pydantic-extra-types==2.10.6"]
     </script>
 
               </article>

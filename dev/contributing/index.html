@@ -121,7 +121,7 @@ What's new &mdash; we've launched
 <a href="https://pydantic.dev/articles/logfire-announcement">Pydantic Logfire</a>
 <img alt="🔥" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/svg/1f525.svg" title=":fire:">
 to help you monitor and understand your
-<a href="https://logfire.pydantic.dev/docs/integrations/pydantic/" id="logfire-app-type" target="_blank">Pydantic validations.</a>
+<a href="https://pydantic.dev/docs/logfire/integrations/pydantic/" id="logfire-app-type" target="_blank">Pydantic validations.</a>
 
           </div>
           
@@ -3418,6 +3418,34 @@ to help you monitor and understand your
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../errors/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting with Logfire
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -4366,11 +4394,11 @@ git<span class="w"> </span>clone<span class="w"> </span>git@github.com:&lt;your<
 <span class="nb">cd</span><span class="w"> </span>pydantic
 
 <span class="c1"># Install UV and pre-commit</span>
-<span class="c1"># We use pipx here, for other options see:</span>
+<span class="c1"># We use uv here, for other options see:</span>
 <span class="c1"># https://docs.astral.sh/uv/getting-started/installation/</span>
 <span class="c1"># https://pre-commit.com/#install</span>
 curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
-uvx<span class="w"> </span>install<span class="w"> </span>pre-commit
+uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>pre-commit
 
 <span class="c1"># Install pydantic, dependencies, test dependencies and doc dependencies</span>
 make<span class="w"> </span>install
@@ -4580,7 +4608,7 @@ to discuss the inclusion of your project.</p>
                 
   <script src="/flarelytics/client.js"></script>
       <script>
-    window.mkdocs_run_deps = ["pydantic==2.14.0a1", "email-validator>=2.0.0", "pydantic-core==2.47.0", "pydantic-extra-types==2.10.6"]
+    window.mkdocs_run_deps = ["pydantic==2.14.0b1", "email-validator>=2.0.0", "pydantic-core==2.48.0", "pydantic-extra-types==2.10.6"]
     </script>
 
               </article>

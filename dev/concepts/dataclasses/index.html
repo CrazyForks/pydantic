@@ -121,7 +121,7 @@ What's new &mdash; we've launched
 <a href="https://pydantic.dev/articles/logfire-announcement">Pydantic Logfire</a>
 <img alt="🔥" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/svg/1f525.svg" title=":fire:">
 to help you monitor and understand your
-<a href="https://logfire.pydantic.dev/docs/integrations/pydantic/" id="logfire-app-type" target="_blank">Pydantic validations.</a>
+<a href="https://pydantic.dev/docs/logfire/integrations/pydantic/" id="logfire-app-type" target="_blank">Pydantic validations.</a>
 
           </div>
           
@@ -3279,6 +3279,34 @@ to help you monitor and understand your
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting with Logfire
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -4242,6 +4270,9 @@ all the inherited fields.</p>
 <span class="sd">      Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value=&#39;pika&#39;, input_type=str]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div>
+<p>Because a Pydantic dataclass validates its inputs just like a model, the same observability applies: if
+you use <a href="../../integrations/logfire/">Logfire</a>, validations of Pydantic dataclasses are
+<a href="../../errors/troubleshooting/">recorded alongside model validations</a>, input included.</p>
 <p>The decorator can also be applied directly on a stdlib dataclass, in which case a new subclass will be created:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
 
@@ -4524,7 +4555,7 @@ be called between the calls to <em>before</em> and <em>after</em> model validato
                 
   <script src="/flarelytics/client.js"></script>
       <script>
-    window.mkdocs_run_deps = ["pydantic==2.14.0a1", "email-validator>=2.0.0", "pydantic-core==2.47.0", "pydantic-extra-types==2.10.6"]
+    window.mkdocs_run_deps = ["pydantic==2.14.0b1", "email-validator>=2.0.0", "pydantic-core==2.48.0", "pydantic-extra-types==2.10.6"]
     </script>
 
               </article>

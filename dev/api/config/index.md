@@ -70,7 +70,7 @@ str_min_length: int
 
 ```
 
-The minimum length for str types. Defaults to `None`.
+The minimum length for str types. Defaults to `0`.
 
 ### str_max_length
 
@@ -683,7 +683,7 @@ Can be one of:
 
 Defaults to `'iso8601'`.
 
-Added in v2.12: This setting replaces ser_json_timedelta, which will be deprecated in v3. `ser_json_temporal` adds more configurability for the other temporal types.
+Added in v2.12: This setting replaces ser_json_timedelta, which will be deprecated in v3. `ser_json_temporal` adds more configurability for the other temporal types. It takes precedence over `ser_json_timedelta`.
 
 ### val_temporal_unit
 

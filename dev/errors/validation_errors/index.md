@@ -1,25 +1,22 @@
 Pydantic attempts to provide useful validation errors. Below are details on common validation errors users may encounter when working with pydantic, together with some suggestions on how to fix them.
 
+The entries below explain what each error type means. To also see *which input* triggered an error in a live service, [Logfire](../troubleshooting/) records the input and structured errors for each validation — see [Troubleshooting Validation Errors](../troubleshooting/).
+
 ## `arguments_type`
 
-This error is raised when an object that would be passed as arguments to a function during validation is not a `tuple`, `list`, or `dict`. Because `NamedTuple` uses function calls in its implementation, that is one way to produce this error:
+This error is raised when an object that would be passed as arguments to a function during validation is not a `tuple`, `list`, or `dict`:
 
 ```python
-from typing import NamedTuple
-
-from pydantic import BaseModel, ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 
-class MyNamedTuple(NamedTuple):
-    x: int
+def func(x: int) -> None: ...
 
 
-class MyModel(BaseModel):
-    field: MyNamedTuple
-
+ta = TypeAdapter(func)
 
 try:
-    MyModel.model_validate({'field': 'invalid'})
+    ta.validate_python('invalid')
 except ValidationError as exc:
     print(repr(exc.errors()[0]['type']))
     #> 'arguments_type'
@@ -742,6 +739,28 @@ try:
 except ValidationError as exc:
     print(repr(exc.errors()[0]['type']))
     #> 'dict_type'
+
+```
+
+## `ellipsis_error`
+
+This error is raised when the input isn't the Ellipsis literal:
+
+```python
+from types import EllipsisType
+
+from pydantic import BaseModel, ValidationError
+
+
+class Model(BaseModel):
+    e: EllipsisType
+
+
+try:
+    Model(e=1)
+except ValidationError as exc:
+    print(repr(exc.errors()[0]['type']))
+    #> 'ellipsis_error'
 
 ```
 
@@ -1629,6 +1648,33 @@ try:
 except ValidationError as exc:
     print(repr(exc.errors()[0]['type']))
     #> 'multiple_of'
+
+```
+
+## `named_tuple_type`
+
+This error is raised when the input value is not valid for a named tuple field:
+
+```python
+from typing import NamedTuple
+
+from pydantic import BaseModel, ValidationError
+
+
+class Point(NamedTuple):
+    x: int
+    y: int
+
+
+class Model(BaseModel):
+    p: Point
+
+
+try:
+    Model(p='invalid')
+except ValidationError as exc:
+    print(repr(exc.errors()[0]['type']))
+    #> 'named_tuple_type'
 
 ```
 

@@ -10,13 +10,15 @@ That ValidationError will contain information about all the errors and how they 
 
 You can access these errors in several ways:
 
-| Method | Description | | --- | --- | | errors() | Returns a list of ErrorDetails errors found in the input data. | | error_count() | Returns the number of errors. | | json() | Returns a JSON representation of the list errors. | | `str(e)` | Returns a human-readable representation of the errors. |
+| Method | Description | | --- | --- | | errors() | Returns a list of ErrorDetails errors found in the input data. | | error_count() | Returns the number of errors. | | json() | Returns a JSON representation of the list of errors. | | `str(e)` | Returns a human-readable representation of the errors. |
 
 The ErrorDetails object is a dictionary. It contains the following:
 
 | Property | Description | | --- | --- | | ctx | An optional object which contains values required to render the error message. | | input | The input provided for validation. | | loc | The error's location as a list. | | msg | A human-readable explanation of the error. | | type | A computer-readable identifier of the error type. | | url | The documentation URL giving information about the error. |
 
 The first item in the loc list will be the field where the error occurred, and if the field is a [sub-model](../../concepts/models/#nested-models), subsequent items will be present to indicate the nested location of the error.
+
+For validations spread across a running service, [Logfire](../troubleshooting/) records this same structured error list together with the complete validation input and trace context, without wrapping each call in `try`/`except`.
 
 As a demonstration:
 

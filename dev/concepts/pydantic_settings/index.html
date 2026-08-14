@@ -121,7 +121,7 @@ What's new &mdash; we've launched
 <a href="https://pydantic.dev/articles/logfire-announcement">Pydantic Logfire</a>
 <img alt="🔥" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/svg/1f525.svg" title=":fire:">
 to help you monitor and understand your
-<a href="https://logfire.pydantic.dev/docs/integrations/pydantic/" id="logfire-app-type" target="_blank">Pydantic validations.</a>
+<a href="https://pydantic.dev/docs/logfire/integrations/pydantic/" id="logfire-app-type" target="_blank">Pydantic validations.</a>
 
           </div>
           
@@ -2174,6 +2174,17 @@ to help you monitor and understand your
 </li>
       
         <li class="md-nav__item">
+  <a href="#debugging-settings-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging settings sources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#customise-settings-sources" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2245,6 +2256,17 @@ to help you monitor and understand your
     <span class="md-ellipsis">
       
         In-place reloading
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-environments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async environments
       
     </span>
   </a>
@@ -4076,6 +4098,34 @@ to help you monitor and understand your
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting with Logfire
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -5518,6 +5568,17 @@ to help you monitor and understand your
 </li>
       
         <li class="md-nav__item">
+  <a href="#debugging-settings-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging settings sources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#customise-settings-sources" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5595,6 +5656,17 @@ to help you monitor and understand your
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#async-environments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async environments
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5624,6 +5696,10 @@ to help you monitor and understand your
 
 <h1 id="settings-management">Settings Management<a class="headerlink" href="#settings-management" title="Permanent link">&para;</a></h1>
 <p><a href="https://github.com/pydantic/pydantic-settings">Pydantic Settings</a> provides optional Pydantic features for loading a settings or config class from environment variables or secrets files.</p>
+<p>Settings are validated from environment variables and secrets files, so a
+<a class="autorefs autorefs-internal" href="../../api/pydantic_core/#pydantic_core.ValidationError"><code>ValidationError</code></a> here points at an environment value that didn't match
+its field. <a href="../../errors/troubleshooting/">Logfire</a> records each validation and its structured errors, so
+you can see which setting failed and why.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <p>Installation is as simple as:</p>
 <div class="language-bash highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>pydantic-settings
@@ -5910,6 +5986,13 @@ environment.</p>
 the same way it would be if passed directly to the initialiser (as a string).</p>
 <p>Complex types like <code>list</code>, <code>set</code>, <code>dict</code>, and sub-models are populated from the environment by treating the
 environment variable's value as a JSON-encoded string.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Because these values are JSON-decoded, an environment variable whose value is not valid JSON raises a
+<a href="../../api/pydantic_settings/#pydantic_settings.SettingsError"><code>SettingsError</code></a>. For example, <code>NUMBERS=1,2,3</code>
+for a <code>numbers: list[int]</code> field fails, because <code>1,2,3</code> is not valid JSON. See
+<a href="#disabling-json-parsing">Disabling JSON parsing</a> if you want to parse such values with your own logic.</p>
+</div>
 <p>Another way to populate nested complex variables is to configure your model with the <code>env_nested_delimiter</code>
 config setting, then use an environment variable with a name pointing to the nested module fields.
 What it does is simply explodes your variable into nested models or dicts.
@@ -6003,7 +6086,6 @@ field names. For example:</p>
     <span class="p">)</span>
 
     <span class="n">llm</span><span class="p">:</span> <span class="n">LLMConfig</span>
-    <span class="o">...</span>
 
 
 <span class="nb">print</span><span class="p">(</span><span class="n">GenerationConfig</span><span class="p">()</span><span class="o">.</span><span class="n">model_dump</span><span class="p">())</span>
@@ -6065,9 +6147,26 @@ and it would raise a <code>ValidationError</code>.</p>
 <span class="c1">#&gt; {&#39;numbers&#39;: [1, 2, 3]}</span>
 </code></pre></div>
 <h3 id="disabling-json-parsing">Disabling JSON parsing<a class="headerlink" href="#disabling-json-parsing" title="Permanent link">&para;</a></h3>
-<p>pydantic-settings by default parses complex types from environment variables as JSON strings. If you want to disable
-this behavior for a field and parse the value in your own validator, you can annotate the field with
-<a href="../../api/pydantic_settings/#pydantic_settings.NoDecode"><code>NoDecode</code></a>:</p>
+<p>pydantic-settings by default parses complex types from environment variables as JSON strings. This means a value
+that is not valid JSON raises a <a href="../../api/pydantic_settings/#pydantic_settings.SettingsError"><code>SettingsError</code></a>:</p>
+<div class="language-py highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic_settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSettings</span><span class="p">,</span> <span class="n">SettingsError</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Settings</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
+    <span class="n">numbers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+
+
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;numbers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1,2,3&#39;</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">Settings</span><span class="p">()</span>
+<span class="k">except</span> <span class="n">SettingsError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="c1">#&gt; error parsing value for field &quot;numbers&quot; from source &quot;EnvSettingsSource&quot;</span>
+</code></pre></div>
+<p>If you want to disable this behavior for a field and parse the value in your own validator, you can annotate the
+field with <a href="../../api/pydantic_settings/#pydantic_settings.NoDecode"><code>NoDecode</code></a>:</p>
 <div class="language-py highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
 
@@ -6093,6 +6192,39 @@ this behavior for a field and parse the value in your own validator, you can ann
 <li>The <code>NoDecode</code> annotation disables JSON parsing for the <code>numbers</code> field. The <code>decode_numbers</code> field validator
    will be called to parse the value.</li>
 </ol>
+<p>To reuse the same parsing across multiple fields, combine <code>NoDecode</code> with a
+<a href="https://docs.pydantic.dev/latest/concepts/validators/#annotated-validators"><code>BeforeValidator</code></a> in a single
+annotated type. This is a common way to accept comma-separated values, for example for CORS origins or allowed
+hosts:</p>
+<div class="language-py highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BeforeValidator</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic_settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSettings</span><span class="p">,</span> <span class="n">NoDecode</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">split_comma</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="n">CommaSeparated</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">NoDecode</span><span class="p">,</span> <span class="n">BeforeValidator</span><span class="p">(</span><span class="n">split_comma</span><span class="p">)]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Settings</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
+    <span class="n">cors_origins</span><span class="p">:</span> <span class="n">CommaSeparated</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">trusted_hosts</span><span class="p">:</span> <span class="n">CommaSeparated</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;cors_origins&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;https://a.com, https://b.com&#39;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;trusted_hosts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;a.internal&#39;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">Settings</span><span class="p">()</span><span class="o">.</span><span class="n">model_dump</span><span class="p">())</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">{&#39;cors_origins&#39;: [&#39;https://a.com&#39;, &#39;https://b.com&#39;], &#39;trusted_hosts&#39;: [&#39;a.internal&#39;]}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</code></pre></div>
 <p>You can also disable JSON parsing for all fields by setting the <code>enable_decoding</code> config setting to <code>False</code>:</p>
 <div class="language-py highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
@@ -6149,7 +6281,7 @@ This will bypass the <code>enable_decoding</code> config setting:</p>
 </ol>
 <h2 id="nested-model-default-partial-updates">Nested model default partial updates<a class="headerlink" href="#nested-model-default-partial-updates" title="Permanent link">&para;</a></h2>
 <p>By default, Pydantic settings does not allow partial updates to nested model default objects. This behavior can be
-overriden by setting the <code>nested_model_default_partial_update</code> flag to <code>True</code>, which will allow partial updates on
+overridden by setting the <code>nested_model_default_partial_update</code> flag to <code>True</code>, which will allow partial updates on
 nested model default object fields.</p>
 <div class="language-py highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
@@ -6747,9 +6879,8 @@ defined) after instantiation:</p>
         <span class="n">CliApp</span><span class="o">.</span><span class="n">run_subcommand</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
 
-<span class="n">CliApp</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">Git</span><span class="p">,</span> <span class="n">cli_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;clone&#39;</span><span class="p">,</span> <span class="s1">&#39;repo&#39;</span><span class="p">,</span> <span class="s1">&#39;dir&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
-    <span class="s1">&#39;repository&#39;</span><span class="p">:</span> <span class="s1">&#39;repo&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;directory&#39;</span><span class="p">:</span> <span class="s1">&#39;dir&#39;</span><span class="p">,</span>
+<span class="k">assert</span> <span class="n">CliApp</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">Git</span><span class="p">,</span> <span class="n">cli_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;clone&#39;</span><span class="p">,</span> <span class="s1">&#39;repo&#39;</span><span class="p">,</span> <span class="s1">&#39;dir&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s1">&#39;clone&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;repository&#39;</span><span class="p">:</span> <span class="s1">&#39;repo&#39;</span><span class="p">,</span> <span class="s1">&#39;directory&#39;</span><span class="p">:</span> <span class="s1">&#39;dir&#39;</span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>When executing a subcommand with an asynchronous cli_cmd, Pydantic settings automatically detects whether the current thread already has an active event loop. If so, the async command is run in a fresh thread to avoid conflicts. Otherwise, it uses asyncio.run() in the current thread. This handling ensures your asynchronous subcommands "just work" without additional manual setup.</p>
@@ -7070,7 +7201,7 @@ enums, use <code>cli_kebab_case='all'</code>.</p>
     <span class="c1">#&gt; error parsing CLI: unrecognized arguments: --bad-arg</span>
 </code></pre></div>
 <h4 id="enforce-required-arguments-at-cli">Enforce Required Arguments at CLI<a class="headerlink" href="#enforce-required-arguments-at-cli" title="Permanent link">&para;</a></h4>
-<p>Pydantic settings is designed to pull values in from various sources when instantating a model. This means a field that
+<p>Pydantic settings is designed to pull values in from various sources when instantiating a model. This means a field that
 is required is not strictly required from any single source (e.g. the CLI). Instead, all that matters is that one of the
 sources provides the required value.</p>
 <p>However, if your use case <a href="#command-line-support">aligns more with #2</a>, using Pydantic models to define CLIs, you will
@@ -7941,10 +8072,10 @@ if not specified. Works in both plain and nested directory modes, like
         <span class="n">gcp_settings</span> <span class="o">=</span> <span class="n">GoogleSecretManagerSettingsSource</span><span class="p">(</span>
             <span class="n">settings_cls</span><span class="p">,</span>
             <span class="c1"># If not provided, will use google.auth.default()</span>
-            <span class="c1"># to get credentials from the environemnt</span>
+            <span class="c1"># to get credentials from the environment</span>
             <span class="c1"># credentials=your_credentials,</span>
             <span class="c1"># If not provided, will use google.auth.default()</span>
-            <span class="c1"># to get project_id from the environemnt</span>
+            <span class="c1"># to get project_id from the environment</span>
             <span class="n">project_id</span><span class="o">=</span><span class="s1">&#39;your-gcp-project-id&#39;</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -8139,6 +8270,13 @@ You can specify a different version using the <code>SecretVersion</code> annotat
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>The <code>deep_merge</code> option is <strong>not available</strong> through the <code>SettingsConfigDict</code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In addition to <code>str</code> and <code>pathlib.Path</code>, the <code>json_file</code>, <code>toml_file</code>, and <code>yaml_file</code> options also accept a
+<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/importlib.resources.abc.html#importlib.resources.abc.Traversable"><code>Traversable</code></a>, such as the result of <code>importlib.resources.files(...).joinpath(...)</code>.
+This makes it possible to load a configuration file that is packaged inside your distribution, including cases where the
+resource does not live on the filesystem (e.g. inside a zip/wheel).</p>
 </div>
 <div class="language-py highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
 
@@ -8343,6 +8481,37 @@ the selected value is determined as follows (in descending order of priority):</
 <li>Variables loaded from the secrets directory.</li>
 <li>The default field values for the <code>Settings</code> model.</li>
 </ol>
+<h2 id="debugging-settings-sources">Debugging settings sources<a class="headerlink" href="#debugging-settings-sources" title="Permanent link">&para;</a></h2>
+<p>When several sources are enabled, it can be hard to tell which source a given value came from — and
+why. Setting the <code>PYDANTIC_SETTINGS_DEBUG</code> environment variable to a truthy value (<code>1</code>, <code>true</code>, <code>yes</code>,
+or <code>on</code>) makes pydantic-settings log, at <code>DEBUG</code> level, the dictionary collected by every source in
+priority order (highest first):</p>
+<div class="language-bash highlight"><pre><span></span><code><span class="nv">PYDANTIC_SETTINGS_DEBUG</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>your_app.py
+</code></pre></div>
+<p>The output is emitted on the <code>pydantic_settings</code> logger, so make sure <code>DEBUG</code>-level logging is enabled
+(for example via <code>logging.basicConfig(level=logging.DEBUG)</code>). A typical report looks like:</p>
+<div class="language-text highlight"><pre><span></span><code>Resolving settings for &#39;Settings&#39; (sources in priority order, highest first):
+  InitSettingsSource: {&#39;port&#39;: 9000}
+  EnvSettingsSource: {&#39;name&#39;: &#39;from_env&#39;}
+  DotEnvSettingsSource: {}
+  SecretsSettingsSource: {}
+  DefaultSettingsSource: {}
+</code></pre></div>
+<p>Sources are listed from highest to lowest priority and merged using a deep update: higher-priority sources override lower-priority ones.
+For nested structures, lower-priority sources may still contribute missing sub-keys even when the top-level key is present in a higher-priority source.</p>
+<p>The same flag also traces file resolution, so you can see which dotenv and secret files were actually
+found and loaded — helpful when running the same code from a different working directory silently
+yields defaults because a relative <code>.env</code> path didn't resolve:</p>
+<div class="language-text highlight"><pre><span></span><code>Env file not found, skipping: /home/app/.env.production
+Loading env file: /home/app/.env
+Secret file not found, skipping: /run/secrets/api_key
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The debug output includes the values loaded from every source, which may contain secrets loaded
+from environment variables, dotenv files, or the secrets directory. Only enable it in a trusted
+debugging context, and avoid leaving it on in production.</p>
+</div>
 <h2 id="customise-settings-sources">Customise settings sources<a class="headerlink" href="#customise-settings-sources" title="Permanent link">&para;</a></h2>
 <p>If the default order of priority doesn't match your needs, it's possible to change it by overriding
 the <code>settings_customise_sources</code> method of your <code>Settings</code> .</p>
@@ -8475,7 +8644,7 @@ need to add your own custom sources, <code>settings_customise_sources</code> mak
         <span class="n">current_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_state</span>
         <span class="n">current_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;some_setting&#39;</span><span class="p">)</span>
 
-        <span class="c1"># Retrive settings from all sources individually</span>
+        <span class="c1"># Retrieve settings from all sources individually</span>
         <span class="c1"># self.settings_sources_data[&quot;SettingsSourceName&quot;]: dict[str, Any]</span>
         <span class="n">settings_sources_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings_sources_data</span>
         <span class="n">settings_sources_data</span><span class="p">[</span><span class="s1">&#39;SomeSettingsSource&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;some_setting&#39;</span><span class="p">)</span>
@@ -8547,6 +8716,72 @@ need to add your own custom sources, <code>settings_customise_sources</code> mak
 <span class="nb">print</span><span class="p">(</span><span class="n">mutable_settings</span><span class="o">.</span><span class="n">foo</span><span class="p">)</span>
 <span class="c1">#&gt; foo</span>
 </code></pre></div>
+<h2 id="async-environments">Async environments<a class="headerlink" href="#async-environments" title="Permanent link">&para;</a></h2>
+<p>Settings are loaded synchronously. When you use sources that read from disk, such as dotenv, secrets, JSON, TOML, or
+YAML files, constructing a settings object in an async application can block the event loop while those files are read.
+To load or reload settings from an async context, run the construction in a worker thread:</p>
+<div class="language-py highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic_settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSettings</span><span class="p">,</span> <span class="n">SettingsConfigDict</span>
+
+<span class="n">env_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">&#39;example.env&#39;</span><span class="p">)</span>
+<span class="n">env_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s1">&#39;api_key=secret</span>
+<span class="s1">&#39;, encoding=&#39;</span><span class="n">utf</span><span class="o">-</span><span class="mi">8</span><span class="s1">&#39;)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Settings</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
+    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">SettingsConfigDict</span><span class="p">(</span><span class="n">env_file</span><span class="o">=</span><span class="n">env_path</span><span class="p">)</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">load_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Settings</span><span class="p">:</span>
+    <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">Settings</span><span class="p">)</span>
+
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">load_settings</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
+<span class="c1">#&gt; secret</span>
+
+<span class="n">env_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>To reload a cached settings object, prefer constructing a fresh instance in a worker thread and swapping the cached
+reference, rather than mutating a shared instance in place:</p>
+<div class="language-py highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic_settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSettings</span><span class="p">,</span> <span class="n">SettingsConfigDict</span>
+
+<span class="n">env_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">&#39;example.env&#39;</span><span class="p">)</span>
+<span class="n">env_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s1">&#39;api_key=secret</span>
+<span class="s1">&#39;, encoding=&#39;</span><span class="n">utf</span><span class="o">-</span><span class="mi">8</span><span class="s1">&#39;)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Settings</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
+    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">SettingsConfigDict</span><span class="p">(</span><span class="n">env_file</span><span class="o">=</span><span class="n">env_path</span><span class="p">)</span>
+
+
+<span class="n">cached_settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">reload_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">global</span> <span class="n">cached_settings</span>
+    <span class="n">cached_settings</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">Settings</span><span class="p">)</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">reload_settings</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cached_settings</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
+<span class="c1">#&gt; secret</span>
+
+<span class="n">env_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>Rebinding the reference is atomic, so concurrent readers always observe a fully-initialized object. By contrast,
+<a href="#in-place-reloading">in-place reloading</a> (<code>settings.__init__()</code>) mutates the object while it runs, so a coroutine that
+reads the settings during a reload may see partially-updated state; if you rely on it, guard both the reload and every
+read with application-level locking.</p>
 
 
 
@@ -8617,7 +8852,7 @@ need to add your own custom sources, <code>settings_customise_sources</code> mak
                 
   <script src="/flarelytics/client.js"></script>
       <script>
-    window.mkdocs_run_deps = ["pydantic==2.14.0a1", "email-validator>=2.0.0", "pydantic-core==2.47.0", "pydantic-extra-types==2.10.6"]
+    window.mkdocs_run_deps = ["pydantic==2.14.0b1", "email-validator>=2.0.0", "pydantic-core==2.48.0", "pydantic-extra-types==2.10.6"]
     </script>
 
               </article>

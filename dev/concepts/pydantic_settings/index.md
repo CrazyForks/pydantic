@@ -2,6 +2,8 @@
 
 [Pydantic Settings](https://github.com/pydantic/pydantic-settings) provides optional Pydantic features for loading a settings or config class from environment variables or secrets files.
 
+Settings are validated from environment variables and secrets files, so a ValidationError here points at an environment value that didn't match its field. [Logfire](../../errors/troubleshooting/) records each validation and its structured errors, so you can see which setting failed and why.
+
 ## Installation
 
 Installation is as simple as:
@@ -305,6 +307,10 @@ For most simple field types (such as `int`, `float`, `str`, etc.), the environme
 
 Complex types like `list`, `set`, `dict`, and sub-models are populated from the environment by treating the environment variable's value as a JSON-encoded string.
 
+Warning
+
+Because these values are JSON-decoded, an environment variable whose value is not valid JSON raises a [`SettingsError`](../../api/pydantic_settings/#pydantic_settings.SettingsError). For example, `NUMBERS=1,2,3` for a `numbers: list[int]` field fails, because `1,2,3` is not valid JSON. See [Disabling JSON parsing](#disabling-json-parsing) if you want to parse such values with your own logic.
+
 Another way to populate nested complex variables is to configure your model with the `env_nested_delimiter` config setting, then use an environment variable with a name pointing to the nested module fields. What it does is simply explodes your variable into nested models or dicts. So if you define a variable `FOO__BAR__BAZ=123` it will convert it into `FOO={'BAR': {'BAZ': 123}}` If you have multiple variables with the same structure they will be merged.
 
 Note
@@ -399,7 +405,6 @@ class GenerationConfig(BaseSettings):
     )
 
     llm: LLMConfig
-    ...
 
 
 print(GenerationConfig().model_dump())
@@ -468,7 +473,28 @@ print(Settings().model_dump())
 
 ### Disabling JSON parsing
 
-pydantic-settings by default parses complex types from environment variables as JSON strings. If you want to disable this behavior for a field and parse the value in your own validator, you can annotate the field with [`NoDecode`](../../api/pydantic_settings/#pydantic_settings.NoDecode):
+pydantic-settings by default parses complex types from environment variables as JSON strings. This means a value that is not valid JSON raises a [`SettingsError`](../../api/pydantic_settings/#pydantic_settings.SettingsError):
+
+```py
+import os
+
+from pydantic_settings import BaseSettings, SettingsError
+
+
+class Settings(BaseSettings):
+    numbers: list[int]
+
+
+os.environ['numbers'] = '1,2,3'
+try:
+    Settings()
+except SettingsError as e:
+    print(e)
+    #> error parsing value for field "numbers" from source "EnvSettingsSource"
+
+```
+
+If you want to disable this behavior for a field and parse the value in your own validator, you can annotate the field with [`NoDecode`](../../api/pydantic_settings/#pydantic_settings.NoDecode):
 
 ```py
 import os
@@ -495,6 +521,40 @@ print(Settings().model_dump())
 ```
 
 1. The `NoDecode` annotation disables JSON parsing for the `numbers` field. The `decode_numbers` field validator will be called to parse the value.
+
+To reuse the same parsing across multiple fields, combine `NoDecode` with a [`BeforeValidator`](https://docs.pydantic.dev/latest/concepts/validators/#annotated-validators) in a single annotated type. This is a common way to accept comma-separated values, for example for CORS origins or allowed hosts:
+
+```py
+import os
+from typing import Annotated, Any
+
+from pydantic import BeforeValidator
+
+from pydantic_settings import BaseSettings, NoDecode
+
+
+def split_comma(value: Any) -> Any:
+    if isinstance(value, str):
+        return [item.strip() for item in value.split(',')]
+    return value
+
+
+CommaSeparated = Annotated[list[str], NoDecode, BeforeValidator(split_comma)]
+
+
+class Settings(BaseSettings):
+    cors_origins: CommaSeparated = []
+    trusted_hosts: CommaSeparated = []
+
+
+os.environ['cors_origins'] = 'https://a.com, https://b.com'
+os.environ['trusted_hosts'] = 'a.internal'
+print(Settings().model_dump())
+"""
+{'cors_origins': ['https://a.com', 'https://b.com'], 'trusted_hosts': ['a.internal']}
+"""
+
+```
 
 You can also disable JSON parsing for all fields by setting the `enable_decoding` config setting to `False`:
 
@@ -557,7 +617,7 @@ print(Settings().model_dump())
 
 ## Nested model default partial updates
 
-By default, Pydantic settings does not allow partial updates to nested model default objects. This behavior can be overriden by setting the `nested_model_default_partial_update` flag to `True`, which will allow partial updates on nested model default object fields.
+By default, Pydantic settings does not allow partial updates to nested model default objects. This behavior can be overridden by setting the `nested_model_default_partial_update` flag to `True`, which will allow partial updates on nested model default object fields.
 
 ```py
 import os
@@ -1201,9 +1261,8 @@ class Git(BaseSettings):
         CliApp.run_subcommand(self)
 
 
-CliApp.run(Git, cli_args=['clone', 'repo', 'dir']).model_dump() == {
-    'repository': 'repo',
-    'directory': 'dir',
+assert CliApp.run(Git, cli_args=['clone', 'repo', 'dir']).model_dump() == {
+    'clone': {'repository': 'repo', 'directory': 'dir'}
 }
 
 ```
@@ -1565,7 +1624,7 @@ except SettingsError as e:
 
 #### Enforce Required Arguments at CLI
 
-Pydantic settings is designed to pull values in from various sources when instantating a model. This means a field that is required is not strictly required from any single source (e.g. the CLI). Instead, all that matters is that one of the sources provides the required value.
+Pydantic settings is designed to pull values in from various sources when instantiating a model. This means a field that is required is not strictly required from any single source (e.g. the CLI). Instead, all that matters is that one of the sources provides the required value.
 
 However, if your use case [aligns more with #2](#command-line-support), using Pydantic models to define CLIs, you will likely want required fields to be *strictly required at the CLI*. We can enable this behavior by using `cli_enforce_required`.
 
@@ -2542,10 +2601,10 @@ class Settings(BaseSettings):
         gcp_settings = GoogleSecretManagerSettingsSource(
             settings_cls,
             # If not provided, will use google.auth.default()
-            # to get credentials from the environemnt
+            # to get credentials from the environment
             # credentials=your_credentials,
             # If not provided, will use google.auth.default()
-            # to get project_id from the environemnt
+            # to get project_id from the environment
             project_id='your-gcp-project-id',
         )
 
@@ -2766,6 +2825,10 @@ The files are merged shallowly in increasing order of priority. To enable deep m
 Warning
 
 The `deep_merge` option is **not available** through the `SettingsConfigDict`.
+
+Note
+
+In addition to `str` and `pathlib.Path`, the `json_file`, `toml_file`, and `yaml_file` options also accept a Traversable, such as the result of `importlib.resources.files(...).joinpath(...)`. This makes it possible to load a configuration file that is packaged inside your distribution, including cases where the resource does not live on the filesystem (e.g. inside a zip/wheel).
 
 ```py
 from pydantic import BaseModel
@@ -2999,6 +3062,42 @@ In the case where a value is specified for the same `Settings` field in multiple
 1. Variables loaded from the secrets directory.
 1. The default field values for the `Settings` model.
 
+## Debugging settings sources
+
+When several sources are enabled, it can be hard to tell which source a given value came from — and why. Setting the `PYDANTIC_SETTINGS_DEBUG` environment variable to a truthy value (`1`, `true`, `yes`, or `on`) makes pydantic-settings log, at `DEBUG` level, the dictionary collected by every source in priority order (highest first):
+
+```bash
+PYDANTIC_SETTINGS_DEBUG=1 python your_app.py
+
+```
+
+The output is emitted on the `pydantic_settings` logger, so make sure `DEBUG`-level logging is enabled (for example via `logging.basicConfig(level=logging.DEBUG)`). A typical report looks like:
+
+```text
+Resolving settings for 'Settings' (sources in priority order, highest first):
+  InitSettingsSource: {'port': 9000}
+  EnvSettingsSource: {'name': 'from_env'}
+  DotEnvSettingsSource: {}
+  SecretsSettingsSource: {}
+  DefaultSettingsSource: {}
+
+```
+
+Sources are listed from highest to lowest priority and merged using a deep update: higher-priority sources override lower-priority ones. For nested structures, lower-priority sources may still contribute missing sub-keys even when the top-level key is present in a higher-priority source.
+
+The same flag also traces file resolution, so you can see which dotenv and secret files were actually found and loaded — helpful when running the same code from a different working directory silently yields defaults because a relative `.env` path didn't resolve:
+
+```text
+Env file not found, skipping: /home/app/.env.production
+Loading env file: /home/app/.env
+Secret file not found, skipping: /run/secrets/api_key
+
+```
+
+Warning
+
+The debug output includes the values loaded from every source, which may contain secrets loaded from environment variables, dotenv files, or the secrets directory. Only enable it in a trusted debugging context, and avoid leaving it on in production.
+
 ## Customise settings sources
 
 If the default order of priority doesn't match your needs, it's possible to change it by overriding the `settings_customise_sources` method of your `Settings` .
@@ -3146,7 +3245,7 @@ class MyCustomSource(PydanticBaseSettingsSource):
         current_state = self.current_state
         current_state.get('some_setting')
 
-        # Retrive settings from all sources individually
+        # Retrieve settings from all sources individually
         # self.settings_sources_data["SettingsSourceName"]: dict[str, Any]
         settings_sources_data = self.settings_sources_data
         settings_sources_data['SomeSettingsSource'].get('some_setting')
@@ -3229,3 +3328,73 @@ print(mutable_settings.foo)
 #> foo
 
 ```
+
+## Async environments
+
+Settings are loaded synchronously. When you use sources that read from disk, such as dotenv, secrets, JSON, TOML, or YAML files, constructing a settings object in an async application can block the event loop while those files are read. To load or reload settings from an async context, run the construction in a worker thread:
+
+```py
+import asyncio
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+env_path = Path('example.env')
+env_path.write_text('api_key=secret
+', encoding='utf-8')
+
+
+class Settings(BaseSettings):
+    api_key: str
+
+    model_config = SettingsConfigDict(env_file=env_path)
+
+
+async def load_settings() -> Settings:
+    return await asyncio.to_thread(Settings)
+
+
+settings = asyncio.run(load_settings())
+print(settings.api_key)
+#> secret
+
+env_path.unlink(missing_ok=True)
+
+```
+
+To reload a cached settings object, prefer constructing a fresh instance in a worker thread and swapping the cached reference, rather than mutating a shared instance in place:
+
+```py
+import asyncio
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+env_path = Path('example.env')
+env_path.write_text('api_key=secret
+', encoding='utf-8')
+
+
+class Settings(BaseSettings):
+    api_key: str
+
+    model_config = SettingsConfigDict(env_file=env_path)
+
+
+cached_settings = Settings()
+
+
+async def reload_settings() -> None:
+    global cached_settings
+    cached_settings = await asyncio.to_thread(Settings)
+
+
+asyncio.run(reload_settings())
+print(cached_settings.api_key)
+#> secret
+
+env_path.unlink(missing_ok=True)
+
+```
+
+Rebinding the reference is atomic, so concurrent readers always observe a fully-initialized object. By contrast, [in-place reloading](#in-place-reloading) (`settings.__init__()`) mutates the object while it runs, so a coroutine that reads the settings during a reload may see partially-updated state; if you rely on it, guard both the reload and every read with application-level locking.

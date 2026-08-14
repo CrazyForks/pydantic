@@ -494,6 +494,8 @@ except ValidationError as e:
 
 ```
 
+In an example like this one, the offending `data` is right there in the code. A ValidationError includes the value rejected at each failing location, but in a running application you may also need the complete validation input and its request or job context. [Logfire records failed validations](../../errors/troubleshooting/) with both.
+
 ## Arbitrary class instances
 
 (Formerly known as "ORM Mode"/`from_orm()`).
@@ -1399,30 +1401,6 @@ print(PetsByName({'Otis': 'dog', 'Milo': 'cat'}).model_dump_json())
 #> {"Otis":"dog","Milo":"cat"}
 print(PetsByName.model_validate({'Otis': 'dog', 'Milo': 'cat'}))
 #> root={'Otis': 'dog', 'Milo': 'cat'}
-
-```
-
-If you want to access items in the `root` field directly or to iterate over the items, you can implement custom `__iter__` and `__getitem__` functions, as shown in the following example.
-
-```python
-from pydantic import RootModel
-
-
-class Pets(RootModel):
-    root: list[str]
-
-    def __iter__(self):
-        return iter(self.root)
-
-    def __getitem__(self, item):
-        return self.root[item]
-
-
-pets = Pets.model_validate(['dog', 'cat'])
-print(pets[0])
-#> dog
-print([pet for pet in pets])
-#> ['dog', 'cat']
 
 ```
 
